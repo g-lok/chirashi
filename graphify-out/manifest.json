@@ -1,0 +1,1397 @@
+{
+  "build.zig": {
+    "mtime": 1779828766.5505543,
+    "ast_hash": "06a8f7f6c0a63e6db76afc77f12efec4",
+    "semantic_hash": ""
+  },
+  "cmd/root.go": {
+    "mtime": 1781116544.520187,
+    "ast_hash": "73280eeb05fbfb61c3e2874b1cd037fc",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/REX.h": {
+    "mtime": 1779828766.551265,
+    "ast_hash": "e5d68eb134a20b9c7e5a827c10c7eee1",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/bridge.go": {
+    "mtime": 1781115821.8973694,
+    "ast_hash": "2c1b4378bbe58443820f7de1f9036160",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder.go": {
+    "mtime": 1779828766.551481,
+    "ast_hash": "ef1c4e5b1deef1ad49995bc136c0e5ea",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_d2pst.go": {
+    "mtime": 1780106534.8686585,
+    "ast_hash": "aefc3d8ae48a1d76583770fd1e02a530",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_el.go": {
+    "mtime": 1780106534.8687208,
+    "ast_hash": "8a2765342f984c03717b58ae4c94dd62",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_op1.go": {
+    "mtime": 1780106534.8687873,
+    "ast_hash": "e450f2ed1a71e90352e30ea9448f69c9",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_ot.go": {
+    "mtime": 1780106534.8692114,
+    "ast_hash": "4f7374d30b269b2bebffdd06a5a04c3c",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_pti.go": {
+    "mtime": 1780106534.8692856,
+    "ast_hash": "fd51142259bacaab4a674871dec650b4",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_xy.go": {
+    "mtime": 1780106534.8693533,
+    "ast_hash": "09dc208e6f8dedbc377a98640c779f38",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/extractor.zig": {
+    "mtime": 1780106534.8693533,
+    "ast_hash": "bf0e04853b97952e3c2afed7acbef558",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/RSMedia.h": {
+    "mtime": 1779828766.5549428,
+    "ast_hash": "d7c85705888f655d4692cb78a864758a",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBinary.cpp": {
+    "mtime": 1779828766.5550084,
+    "ast_hash": "d794974aa6dded77b5c04066ba49f3e2",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBinary.h": {
+    "mtime": 1779828766.5550654,
+    "ast_hash": "1296cc23aee32522fe4330352febdabd",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBinaryUnitTest.cpp": {
+    "mtime": 1779828766.5551226,
+    "ast_hash": "a6fcac73f16c4508245ba3b6f2fd3af9",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBufferedMedia.cpp": {
+    "mtime": 1779828766.5551927,
+    "ast_hash": "b9b6f96ed6dc603a47d7b1932ac77b47",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBufferedMedia.h": {
+    "mtime": 1779828766.5552564,
+    "ast_hash": "dd3eb6f257480138f2b39fe1b7d0d31e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SFourCharCode.cpp": {
+    "mtime": 1779828766.5553095,
+    "ast_hash": "fa866c63eb3461578eff3c4e743f3051",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SFourCharCode.h": {
+    "mtime": 1779828766.555365,
+    "ast_hash": "76d433b82084285258cd02fc27e008b4",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SGlobalizedString.cpp": {
+    "mtime": 1779828766.5554166,
+    "ast_hash": "d2783cb09038bce22ce0af372dda8671",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SGlobalizedString.h": {
+    "mtime": 1779828766.5554593,
+    "ast_hash": "f1e7e2cc276e55b1eae9c06d39db4734",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMedia.cpp": {
+    "mtime": 1779828766.5555103,
+    "ast_hash": "740ffd12eda679d67aaaa8b94fc14cbb",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMedia.h": {
+    "mtime": 1779828766.5555558,
+    "ast_hash": "deffc371e9e15b1ab9b5d93ad0990610",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMedia_fwd.h": {
+    "mtime": 1779828766.5555942,
+    "ast_hash": "578720252ec9d8a12df3a40c77076283",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMemoryMedia.cpp": {
+    "mtime": 1779828766.5556405,
+    "ast_hash": "58b8e5a419758da7e80f02fcb4bff823",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMemoryMedia.h": {
+    "mtime": 1779828766.55569,
+    "ast_hash": "d3fc72ad2df290e8966593f535ba5dad",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SOwnedMemoryMedia.cpp": {
+    "mtime": 1779828766.5557384,
+    "ast_hash": "55186c9b4f216c2bc90567e19d0c6034",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SOwnedMemoryMedia.h": {
+    "mtime": 1779828766.5557892,
+    "ast_hash": "03a4b0ae57bd9509c1fc8948e224981e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SPartialMedia.cpp": {
+    "mtime": 1779828766.555835,
+    "ast_hash": "82324a922858362a1453cf68b33a9748",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SPartialMedia.h": {
+    "mtime": 1779828766.555888,
+    "ast_hash": "43212b5823261086cd1e6e76c54461a2",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersion.cpp": {
+    "mtime": 1779828766.555942,
+    "ast_hash": "86f8c472fe92a6346d14dd5e9d727099",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersion.h": {
+    "mtime": 1779828766.5559888,
+    "ast_hash": "59ac678e4e8d95cf848e862022a57644",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUnitTest.cpp": {
+    "mtime": 1779828766.5560334,
+    "ast_hash": "0902f7a07bf7c00aa80f9342d04d6836",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtils.cpp": {
+    "mtime": 1779828766.5560775,
+    "ast_hash": "5b25704f52c969b6a2d0500e565d7184",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtils.h": {
+    "mtime": 1779828766.556119,
+    "ast_hash": "35c83ad15446c6233501e1ad0f249cbc",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtilsMac.cpp": {
+    "mtime": 1779828766.5561643,
+    "ast_hash": "55e060d3bb2cd0b6c1a15b031337fb2e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtilsWin.cpp": {
+    "mtime": 1779828766.5562181,
+    "ast_hash": "8ab3f3e61eeacf8a0549f5b28477046f",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SmugglerTypes.h": {
+    "mtime": 1779828766.5562637,
+    "ast_hash": "e7216865f82b7e3777e4a4158ff2422d",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/RSMedia.h": {
+    "mtime": 1779828766.558677,
+    "ast_hash": "d7c85705888f655d4692cb78a864758a",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBinary.cpp": {
+    "mtime": 1779828766.5587423,
+    "ast_hash": "d794974aa6dded77b5c04066ba49f3e2",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBinary.h": {
+    "mtime": 1779828766.5588,
+    "ast_hash": "1296cc23aee32522fe4330352febdabd",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBinaryUnitTest.cpp": {
+    "mtime": 1779828766.5588524,
+    "ast_hash": "a6fcac73f16c4508245ba3b6f2fd3af9",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBufferedMedia.cpp": {
+    "mtime": 1779828766.5589035,
+    "ast_hash": "b9b6f96ed6dc603a47d7b1932ac77b47",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBufferedMedia.h": {
+    "mtime": 1779828766.5589473,
+    "ast_hash": "dd3eb6f257480138f2b39fe1b7d0d31e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SFourCharCode.cpp": {
+    "mtime": 1779828766.5589898,
+    "ast_hash": "fa866c63eb3461578eff3c4e743f3051",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SFourCharCode.h": {
+    "mtime": 1779828766.5590332,
+    "ast_hash": "76d433b82084285258cd02fc27e008b4",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SGlobalizedString.cpp": {
+    "mtime": 1779828766.5590875,
+    "ast_hash": "d2783cb09038bce22ce0af372dda8671",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SGlobalizedString.h": {
+    "mtime": 1779828766.5591302,
+    "ast_hash": "f1e7e2cc276e55b1eae9c06d39db4734",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMedia.cpp": {
+    "mtime": 1779828766.5591784,
+    "ast_hash": "740ffd12eda679d67aaaa8b94fc14cbb",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMedia.h": {
+    "mtime": 1779828766.5592253,
+    "ast_hash": "deffc371e9e15b1ab9b5d93ad0990610",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMedia_fwd.h": {
+    "mtime": 1779828766.5592635,
+    "ast_hash": "578720252ec9d8a12df3a40c77076283",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMemoryMedia.cpp": {
+    "mtime": 1779828766.55931,
+    "ast_hash": "58b8e5a419758da7e80f02fcb4bff823",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMemoryMedia.h": {
+    "mtime": 1779828766.5593636,
+    "ast_hash": "d3fc72ad2df290e8966593f535ba5dad",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SOwnedMemoryMedia.cpp": {
+    "mtime": 1779828766.559413,
+    "ast_hash": "55186c9b4f216c2bc90567e19d0c6034",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SOwnedMemoryMedia.h": {
+    "mtime": 1779828766.5594604,
+    "ast_hash": "03a4b0ae57bd9509c1fc8948e224981e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SPartialMedia.cpp": {
+    "mtime": 1779828766.55951,
+    "ast_hash": "82324a922858362a1453cf68b33a9748",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SPartialMedia.h": {
+    "mtime": 1779828766.5595531,
+    "ast_hash": "43212b5823261086cd1e6e76c54461a2",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersion.cpp": {
+    "mtime": 1779828766.559601,
+    "ast_hash": "86f8c472fe92a6346d14dd5e9d727099",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersion.h": {
+    "mtime": 1779828766.5596476,
+    "ast_hash": "59ac678e4e8d95cf848e862022a57644",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUnitTest.cpp": {
+    "mtime": 1779828766.5596924,
+    "ast_hash": "0902f7a07bf7c00aa80f9342d04d6836",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtils.cpp": {
+    "mtime": 1779828766.5597372,
+    "ast_hash": "5b25704f52c969b6a2d0500e565d7184",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtils.h": {
+    "mtime": 1779828766.5597782,
+    "ast_hash": "35c83ad15446c6233501e1ad0f249cbc",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtilsMac.cpp": {
+    "mtime": 1779828766.5598266,
+    "ast_hash": "55e060d3bb2cd0b6c1a15b031337fb2e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtilsWin.cpp": {
+    "mtime": 1779828766.5598814,
+    "ast_hash": "8ab3f3e61eeacf8a0549f5b28477046f",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SmugglerTypes.h": {
+    "mtime": 1779828766.5599244,
+    "ast_hash": "e7216865f82b7e3777e4a4158ff2422d",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/RSMedia.h": {
+    "mtime": 1779828766.5631094,
+    "ast_hash": "d7c85705888f655d4692cb78a864758a",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBinary.cpp": {
+    "mtime": 1779828766.563196,
+    "ast_hash": "d794974aa6dded77b5c04066ba49f3e2",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBinary.h": {
+    "mtime": 1779828766.5632598,
+    "ast_hash": "1296cc23aee32522fe4330352febdabd",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBinaryUnitTest.cpp": {
+    "mtime": 1779828766.5633113,
+    "ast_hash": "a6fcac73f16c4508245ba3b6f2fd3af9",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBufferedMedia.cpp": {
+    "mtime": 1779828766.563395,
+    "ast_hash": "b9b6f96ed6dc603a47d7b1932ac77b47",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBufferedMedia.h": {
+    "mtime": 1779828766.563461,
+    "ast_hash": "dd3eb6f257480138f2b39fe1b7d0d31e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SFourCharCode.cpp": {
+    "mtime": 1779828766.5635028,
+    "ast_hash": "fa866c63eb3461578eff3c4e743f3051",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SFourCharCode.h": {
+    "mtime": 1779828766.563548,
+    "ast_hash": "76d433b82084285258cd02fc27e008b4",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SGlobalizedString.cpp": {
+    "mtime": 1779828766.5636117,
+    "ast_hash": "d2783cb09038bce22ce0af372dda8671",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SGlobalizedString.h": {
+    "mtime": 1779828766.5636547,
+    "ast_hash": "f1e7e2cc276e55b1eae9c06d39db4734",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMedia.cpp": {
+    "mtime": 1779828766.5637062,
+    "ast_hash": "740ffd12eda679d67aaaa8b94fc14cbb",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMedia.h": {
+    "mtime": 1779828766.5637538,
+    "ast_hash": "deffc371e9e15b1ab9b5d93ad0990610",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMedia_fwd.h": {
+    "mtime": 1779828766.5637925,
+    "ast_hash": "578720252ec9d8a12df3a40c77076283",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMemoryMedia.cpp": {
+    "mtime": 1779828766.5638385,
+    "ast_hash": "58b8e5a419758da7e80f02fcb4bff823",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMemoryMedia.h": {
+    "mtime": 1779828766.5638855,
+    "ast_hash": "d3fc72ad2df290e8966593f535ba5dad",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SOwnedMemoryMedia.cpp": {
+    "mtime": 1779828766.563936,
+    "ast_hash": "55186c9b4f216c2bc90567e19d0c6034",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SOwnedMemoryMedia.h": {
+    "mtime": 1779828766.5639822,
+    "ast_hash": "03a4b0ae57bd9509c1fc8948e224981e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SPartialMedia.cpp": {
+    "mtime": 1779828766.564031,
+    "ast_hash": "82324a922858362a1453cf68b33a9748",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SPartialMedia.h": {
+    "mtime": 1779828766.564074,
+    "ast_hash": "43212b5823261086cd1e6e76c54461a2",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersion.cpp": {
+    "mtime": 1779828766.5641215,
+    "ast_hash": "86f8c472fe92a6346d14dd5e9d727099",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersion.h": {
+    "mtime": 1779828766.5641685,
+    "ast_hash": "59ac678e4e8d95cf848e862022a57644",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUnitTest.cpp": {
+    "mtime": 1779828766.5642133,
+    "ast_hash": "0902f7a07bf7c00aa80f9342d04d6836",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtils.cpp": {
+    "mtime": 1779828766.5642579,
+    "ast_hash": "5b25704f52c969b6a2d0500e565d7184",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtils.h": {
+    "mtime": 1779828766.5642993,
+    "ast_hash": "35c83ad15446c6233501e1ad0f249cbc",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtilsMac.cpp": {
+    "mtime": 1779828766.5643525,
+    "ast_hash": "55e060d3bb2cd0b6c1a15b031337fb2e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtilsWin.cpp": {
+    "mtime": 1779828766.5644083,
+    "ast_hash": "8ab3f3e61eeacf8a0549f5b28477046f",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SmugglerTypes.h": {
+    "mtime": 1779828766.564452,
+    "ast_hash": "e7216865f82b7e3777e4a4158ff2422d",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/resample.go": {
+    "mtime": 1780106534.869754,
+    "ast_hash": "f5d913147e055ff72904358bbaa916e8",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/rex/REX.c": {
+    "mtime": 1779828766.5646265,
+    "ast_hash": "8880fce8f5c67ea01c44f3ca2d4029a1",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/runner.go": {
+    "mtime": 1781116531.8020003,
+    "ast_hash": "52907d5ddba4d308b724ab3975fe792a",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/types.go": {
+    "mtime": 1781116548.0582733,
+    "ast_hash": "6e24e2b49771611303ec41a472707fb2",
+    "semantic_hash": ""
+  },
+  "main.go": {
+    "mtime": 1779828766.5648053,
+    "ast_hash": "44a11f5f93952f7166b8bb2e9835ea92",
+    "semantic_hash": ""
+  },
+  "tests/encoder_format_test.go": {
+    "mtime": 1780106534.9056525,
+    "ast_hash": "68a40acf6f90a0793918febb8bcfee50",
+    "semantic_hash": ""
+  },
+  "tests/encoder_test.go": {
+    "mtime": 1780106534.9056525,
+    "ast_hash": "75279b97a6fdef6b57bbc4ed3c75ea24",
+    "semantic_hash": ""
+  },
+  "tests/integration_test.go": {
+    "mtime": 1779828766.5651114,
+    "ast_hash": "794972c9064073f57b372741bd17b2c4",
+    "semantic_hash": ""
+  },
+  "tests/processor_test.go": {
+    "mtime": 1779828766.5651681,
+    "ast_hash": "7f834996340b498610fad16d3f339064",
+    "semantic_hash": ""
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1779828766.54055,
+    "ast_hash": "2afeccf74ecf868a0f5ef013dfb81b67",
+    "semantic_hash": ""
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1779828766.540613,
+    "ast_hash": "18df03e238038bdc5a7fc423e0f9904c",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1781116888.6221087,
+    "ast_hash": "9c4e5ef1a980e6b7fc8f17135d14689b",
+    "semantic_hash": ""
+  },
+  "CODE_OF_CONDUCT.md": {
+    "mtime": 1779828766.5500686,
+    "ast_hash": "23fd19ef659ede7c806d656ba2b7acdd",
+    "semantic_hash": ""
+  },
+  "CONTRIBUTING.md": {
+    "mtime": 1779828766.5501087,
+    "ast_hash": "819e4e37cddcc616b65f1676afa49ce3",
+    "semantic_hash": ""
+  },
+  "NOTICE.md": {
+    "mtime": 1779828766.5502877,
+    "ast_hash": "3da3454587452658d921a795e1928476",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1781116959.933453,
+    "ast_hash": "0977a228150756a03a04b4c4dfa9814b",
+    "semantic_hash": ""
+  },
+  "RELEASE-NOTES.md": {
+    "mtime": 1780106534.8661182,
+    "ast_hash": "1be5118632e4976af4061f02ed2e5314",
+    "semantic_hash": ""
+  },
+  "REX_SDK_LICENSE.txt": {
+    "mtime": 1779828766.55044,
+    "ast_hash": "35b9a337963280d366e653dcb538550f",
+    "semantic_hash": ""
+  },
+  "TODO.md": {
+    "mtime": 1780992017.3545787,
+    "ast_hash": "49cd97ac4b9c8f2517e72d941361d3ba",
+    "semantic_hash": ""
+  },
+  "tests/testdata/PreviewRender_Tempo120000.txt": {
+    "mtime": 1779828766.5731554,
+    "ast_hash": "76b3c67d06f1bd3a827f5b05bb796d8d",
+    "semantic_hash": ""
+  },
+  "tests/testdata/Slice_001.txt": {
+    "mtime": 1779828766.5745523,
+    "ast_hash": "c5c2e6572cb0e032c4aa038049fb5b67",
+    "semantic_hash": ""
+  },
+  "tests/testdata/Slice_002.txt": {
+    "mtime": 1779828766.5748427,
+    "ast_hash": "d538b2edaa1545a5a0fa2ed0743cde32",
+    "semantic_hash": ""
+  },
+  "tests/testdata/Slice_003.txt": {
+    "mtime": 1779828766.5754206,
+    "ast_hash": "078d4ea3cf0eec6f75fb4ce287076874",
+    "semantic_hash": ""
+  },
+  "tests/testdata/Slice_004.txt": {
+    "mtime": 1779828766.5758076,
+    "ast_hash": "aa4db91949c3a3088e422f76360dea66",
+    "semantic_hash": ""
+  },
+  "tests/testdata/Slice_005.txt": {
+    "mtime": 1779828766.5759566,
+    "ast_hash": "f5f9e7005d39c2626313f983b22508af",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/bridge_stubs.go": {
+    "mtime": 1781115841.1422834,
+    "ast_hash": "d813f4dfcee8b494ef6dc73e73b645c0",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_adg.go": {
+    "mtime": 1781116493.4186516,
+    "ast_hash": "c75a06b2cb263660f6b7fa2acd626f82",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_aiff.go": {
+    "mtime": 1781116428.2037446,
+    "ast_hash": "9c2f417c5679b968511ff57b4900aeda",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_output_test.go": {
+    "mtime": 1781116598.9794185,
+    "ast_hash": "820140b1bb724784ac3cb6c83ddb2a0d",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_simpler.go": {
+    "mtime": 1781116476.8879304,
+    "ast_hash": "752d1ad2ee5d32dbb7e94d8b76a55c7d",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/encoder_xrni.go": {
+    "mtime": 1781116640.8932316,
+    "ast_hash": "db21f81a7e4da8a433ac606ffe12e8a6",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader.go": {
+    "mtime": 1781116384.2434692,
+    "ast_hash": "57e784cf9757d14eed0fa796070c09a4",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_aiff.go": {
+    "mtime": 1781115462.1975043,
+    "ast_hash": "37d42322990a40fdce062669f18bd700",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_d2pst.go": {
+    "mtime": 1781115517.7196612,
+    "ast_hash": "7e9711e7c83e7809f0500387fde567a4",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_drumrack.go": {
+    "mtime": 1781116063.1752267,
+    "ast_hash": "744d9ad80cce3ade6aee0a39b433a035",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_ot.go": {
+    "mtime": 1781115671.687208,
+    "ast_hash": "a753205937884fc1b9a2d5cbecd906f7",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_pti.go": {
+    "mtime": 1781115476.3661916,
+    "ast_hash": "b35ee068e204010171cdc93f7f0f538e",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_simpler.go": {
+    "mtime": 1781116389.3393857,
+    "ast_hash": "dc2c7772aeb8d5b7d5407b27559dbbcd",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_wav.go": {
+    "mtime": 1781115443.3619156,
+    "ast_hash": "f64fe5b0961242b6b80b68f56b900377",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_xrni.go": {
+    "mtime": 1781115685.3782973,
+    "ast_hash": "02387cc3169df43a5d3b8e3d385ad890",
+    "semantic_hash": ""
+  },
+  "internal/rexengine/reader_xy.go": {
+    "mtime": 1781115503.4325871,
+    "ast_hash": "c418317daffa220dc47b4f33744dd521",
+    "semantic_hash": ""
+  },
+  "tests/reader_test.go": {
+    "mtime": 1781115859.5641835,
+    "ast_hash": "672a0f81adfbc09365404e1e25993692",
+    "semantic_hash": ""
+  },
+  "CHANGELOG.md": {
+    "mtime": 1781116968.903484,
+    "ast_hash": "2bb43d08be6b1f2c1ddb63fc19cc21a9",
+    "semantic_hash": ""
+  },
+  "docs/phase2-output-plan.md": {
+    "mtime": 1781116858.446907,
+    "ast_hash": "96d284d2139716e5da0527e2ad9aaff2",
+    "semantic_hash": ""
+  },
+  "docs/phase2-plan.md": {
+    "mtime": 1781115266.0243208,
+    "ast_hash": "48b903e772dbbcbb3fb9a60faba19227",
+    "semantic_hash": ""
+  },
+  "/home/g/Projects/rexconverter/build.zig": {
+    "mtime": 1781134425.2003639,
+    "ast_hash": "e3968861c34a2c7e02015897dec632a0",
+    "semantic_hash": "e3968861c34a2c7e02015897dec632a0"
+  },
+  "/home/g/Projects/rexconverter/cmd/root.go": {
+    "mtime": 1781133577.9176047,
+    "ast_hash": "dea925f112e52ea50963aa32e488e2b4",
+    "semantic_hash": "dea925f112e52ea50963aa32e488e2b4"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/REX.h": {
+    "mtime": 1779828766.551265,
+    "ast_hash": "e5d68eb134a20b9c7e5a827c10c7eee1",
+    "semantic_hash": "e5d68eb134a20b9c7e5a827c10c7eee1"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/bridge.go": {
+    "mtime": 1781137490.055721,
+    "ast_hash": "5e70dfb79bad8427133a4d9c37ac35df",
+    "semantic_hash": "5e70dfb79bad8427133a4d9c37ac35df"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/bridge_stubs.go": {
+    "mtime": 1781133417.0377684,
+    "ast_hash": "b769258d23f0d14f202d490b4ac4db35",
+    "semantic_hash": "b769258d23f0d14f202d490b4ac4db35"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder.go": {
+    "mtime": 1779828766.551481,
+    "ast_hash": "ef1c4e5b1deef1ad49995bc136c0e5ea",
+    "semantic_hash": "ef1c4e5b1deef1ad49995bc136c0e5ea"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_adg.go": {
+    "mtime": 1781116493.4186516,
+    "ast_hash": "c75a06b2cb263660f6b7fa2acd626f82",
+    "semantic_hash": "c75a06b2cb263660f6b7fa2acd626f82"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_aiff.go": {
+    "mtime": 1781116428.2037446,
+    "ast_hash": "9c2f417c5679b968511ff57b4900aeda",
+    "semantic_hash": "9c2f417c5679b968511ff57b4900aeda"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_d2pst.go": {
+    "mtime": 1780106534.8686585,
+    "ast_hash": "aefc3d8ae48a1d76583770fd1e02a530",
+    "semantic_hash": "aefc3d8ae48a1d76583770fd1e02a530"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_el.go": {
+    "mtime": 1780106534.8687208,
+    "ast_hash": "8a2765342f984c03717b58ae4c94dd62",
+    "semantic_hash": "8a2765342f984c03717b58ae4c94dd62"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_op1.go": {
+    "mtime": 1780106534.8687873,
+    "ast_hash": "e450f2ed1a71e90352e30ea9448f69c9",
+    "semantic_hash": "e450f2ed1a71e90352e30ea9448f69c9"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_ot.go": {
+    "mtime": 1781135131.7773519,
+    "ast_hash": "878c29c6f2b62deefbc7b9b763f72d75",
+    "semantic_hash": "878c29c6f2b62deefbc7b9b763f72d75"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_output_test.go": {
+    "mtime": 1781116598.9794185,
+    "ast_hash": "820140b1bb724784ac3cb6c83ddb2a0d",
+    "semantic_hash": "820140b1bb724784ac3cb6c83ddb2a0d"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_pti.go": {
+    "mtime": 1781135128.6123507,
+    "ast_hash": "59aa42fed7101d82e2576cb8f8af2afb",
+    "semantic_hash": "59aa42fed7101d82e2576cb8f8af2afb"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_simpler.go": {
+    "mtime": 1781116476.8879304,
+    "ast_hash": "752d1ad2ee5d32dbb7e94d8b76a55c7d",
+    "semantic_hash": "752d1ad2ee5d32dbb7e94d8b76a55c7d"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_xrni.go": {
+    "mtime": 1781135172.2783651,
+    "ast_hash": "b1ecdae0969d4bc561af1d4b41e5908d",
+    "semantic_hash": "b1ecdae0969d4bc561af1d4b41e5908d"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/encoder_xy.go": {
+    "mtime": 1781135165.7793632,
+    "ast_hash": "559adbf14e0b43c84a3b3fae77c0bbd9",
+    "semantic_hash": "559adbf14e0b43c84a3b3fae77c0bbd9"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/extractor.zig": {
+    "mtime": 1780106534.8693533,
+    "ast_hash": "bf0e04853b97952e3c2afed7acbef558",
+    "semantic_hash": "bf0e04853b97952e3c2afed7acbef558"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/extractor_stub.zig": {
+    "mtime": 1781134395.3222702,
+    "ast_hash": "5cabfc5e8c874fda1fc592a5240ca59e",
+    "semantic_hash": "5cabfc5e8c874fda1fc592a5240ca59e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/RSMedia.h": {
+    "mtime": 1779828766.5549428,
+    "ast_hash": "d7c85705888f655d4692cb78a864758a",
+    "semantic_hash": "d7c85705888f655d4692cb78a864758a"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBinary.cpp": {
+    "mtime": 1779828766.5550084,
+    "ast_hash": "d794974aa6dded77b5c04066ba49f3e2",
+    "semantic_hash": "d794974aa6dded77b5c04066ba49f3e2"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBinary.h": {
+    "mtime": 1779828766.5550654,
+    "ast_hash": "1296cc23aee32522fe4330352febdabd",
+    "semantic_hash": "1296cc23aee32522fe4330352febdabd"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBinaryUnitTest.cpp": {
+    "mtime": 1779828766.5551226,
+    "ast_hash": "a6fcac73f16c4508245ba3b6f2fd3af9",
+    "semantic_hash": "a6fcac73f16c4508245ba3b6f2fd3af9"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBufferedMedia.cpp": {
+    "mtime": 1779828766.5551927,
+    "ast_hash": "b9b6f96ed6dc603a47d7b1932ac77b47",
+    "semantic_hash": "b9b6f96ed6dc603a47d7b1932ac77b47"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SBufferedMedia.h": {
+    "mtime": 1779828766.5552564,
+    "ast_hash": "dd3eb6f257480138f2b39fe1b7d0d31e",
+    "semantic_hash": "dd3eb6f257480138f2b39fe1b7d0d31e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SFourCharCode.cpp": {
+    "mtime": 1779828766.5553095,
+    "ast_hash": "fa866c63eb3461578eff3c4e743f3051",
+    "semantic_hash": "fa866c63eb3461578eff3c4e743f3051"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SFourCharCode.h": {
+    "mtime": 1779828766.555365,
+    "ast_hash": "76d433b82084285258cd02fc27e008b4",
+    "semantic_hash": "76d433b82084285258cd02fc27e008b4"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SGlobalizedString.cpp": {
+    "mtime": 1779828766.5554166,
+    "ast_hash": "d2783cb09038bce22ce0af372dda8671",
+    "semantic_hash": "d2783cb09038bce22ce0af372dda8671"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SGlobalizedString.h": {
+    "mtime": 1779828766.5554593,
+    "ast_hash": "f1e7e2cc276e55b1eae9c06d39db4734",
+    "semantic_hash": "f1e7e2cc276e55b1eae9c06d39db4734"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMedia.cpp": {
+    "mtime": 1779828766.5555103,
+    "ast_hash": "740ffd12eda679d67aaaa8b94fc14cbb",
+    "semantic_hash": "740ffd12eda679d67aaaa8b94fc14cbb"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMedia.h": {
+    "mtime": 1779828766.5555558,
+    "ast_hash": "deffc371e9e15b1ab9b5d93ad0990610",
+    "semantic_hash": "deffc371e9e15b1ab9b5d93ad0990610"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMedia_fwd.h": {
+    "mtime": 1779828766.5555942,
+    "ast_hash": "578720252ec9d8a12df3a40c77076283",
+    "semantic_hash": "578720252ec9d8a12df3a40c77076283"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMemoryMedia.cpp": {
+    "mtime": 1779828766.5556405,
+    "ast_hash": "58b8e5a419758da7e80f02fcb4bff823",
+    "semantic_hash": "58b8e5a419758da7e80f02fcb4bff823"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SMemoryMedia.h": {
+    "mtime": 1779828766.55569,
+    "ast_hash": "d3fc72ad2df290e8966593f535ba5dad",
+    "semantic_hash": "d3fc72ad2df290e8966593f535ba5dad"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SOwnedMemoryMedia.cpp": {
+    "mtime": 1779828766.5557384,
+    "ast_hash": "55186c9b4f216c2bc90567e19d0c6034",
+    "semantic_hash": "55186c9b4f216c2bc90567e19d0c6034"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SOwnedMemoryMedia.h": {
+    "mtime": 1779828766.5557892,
+    "ast_hash": "03a4b0ae57bd9509c1fc8948e224981e",
+    "semantic_hash": "03a4b0ae57bd9509c1fc8948e224981e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SPartialMedia.cpp": {
+    "mtime": 1779828766.555835,
+    "ast_hash": "82324a922858362a1453cf68b33a9748",
+    "semantic_hash": "82324a922858362a1453cf68b33a9748"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SPartialMedia.h": {
+    "mtime": 1779828766.555888,
+    "ast_hash": "43212b5823261086cd1e6e76c54461a2",
+    "semantic_hash": "43212b5823261086cd1e6e76c54461a2"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersion.cpp": {
+    "mtime": 1779828766.555942,
+    "ast_hash": "86f8c472fe92a6346d14dd5e9d727099",
+    "semantic_hash": "86f8c472fe92a6346d14dd5e9d727099"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersion.h": {
+    "mtime": 1779828766.5559888,
+    "ast_hash": "59ac678e4e8d95cf848e862022a57644",
+    "semantic_hash": "59ac678e4e8d95cf848e862022a57644"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUnitTest.cpp": {
+    "mtime": 1779828766.5560334,
+    "ast_hash": "0902f7a07bf7c00aa80f9342d04d6836",
+    "semantic_hash": "0902f7a07bf7c00aa80f9342d04d6836"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtils.cpp": {
+    "mtime": 1779828766.5560775,
+    "ast_hash": "5b25704f52c969b6a2d0500e565d7184",
+    "semantic_hash": "5b25704f52c969b6a2d0500e565d7184"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtils.h": {
+    "mtime": 1779828766.556119,
+    "ast_hash": "35c83ad15446c6233501e1ad0f249cbc",
+    "semantic_hash": "35c83ad15446c6233501e1ad0f249cbc"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtilsMac.cpp": {
+    "mtime": 1779828766.5561643,
+    "ast_hash": "55e060d3bb2cd0b6c1a15b031337fb2e",
+    "semantic_hash": "55e060d3bb2cd0b6c1a15b031337fb2e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SVersionUtilsWin.cpp": {
+    "mtime": 1779828766.5562181,
+    "ast_hash": "8ab3f3e61eeacf8a0549f5b28477046f",
+    "semantic_hash": "8ab3f3e61eeacf8a0549f5b28477046f"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Resources/Media/SmugglerTypes.h": {
+    "mtime": 1779828766.5562637,
+    "ast_hash": "e7216865f82b7e3777e4a4158ff2422d",
+    "semantic_hash": "e7216865f82b7e3777e4a4158ff2422d"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/RSMedia.h": {
+    "mtime": 1779828766.558677,
+    "ast_hash": "d7c85705888f655d4692cb78a864758a",
+    "semantic_hash": "d7c85705888f655d4692cb78a864758a"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBinary.cpp": {
+    "mtime": 1779828766.5587423,
+    "ast_hash": "d794974aa6dded77b5c04066ba49f3e2",
+    "semantic_hash": "d794974aa6dded77b5c04066ba49f3e2"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBinary.h": {
+    "mtime": 1779828766.5588,
+    "ast_hash": "1296cc23aee32522fe4330352febdabd",
+    "semantic_hash": "1296cc23aee32522fe4330352febdabd"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBinaryUnitTest.cpp": {
+    "mtime": 1779828766.5588524,
+    "ast_hash": "a6fcac73f16c4508245ba3b6f2fd3af9",
+    "semantic_hash": "a6fcac73f16c4508245ba3b6f2fd3af9"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBufferedMedia.cpp": {
+    "mtime": 1779828766.5589035,
+    "ast_hash": "b9b6f96ed6dc603a47d7b1932ac77b47",
+    "semantic_hash": "b9b6f96ed6dc603a47d7b1932ac77b47"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SBufferedMedia.h": {
+    "mtime": 1779828766.5589473,
+    "ast_hash": "dd3eb6f257480138f2b39fe1b7d0d31e",
+    "semantic_hash": "dd3eb6f257480138f2b39fe1b7d0d31e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SFourCharCode.cpp": {
+    "mtime": 1779828766.5589898,
+    "ast_hash": "fa866c63eb3461578eff3c4e743f3051",
+    "semantic_hash": "fa866c63eb3461578eff3c4e743f3051"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SFourCharCode.h": {
+    "mtime": 1779828766.5590332,
+    "ast_hash": "76d433b82084285258cd02fc27e008b4",
+    "semantic_hash": "76d433b82084285258cd02fc27e008b4"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SGlobalizedString.cpp": {
+    "mtime": 1779828766.5590875,
+    "ast_hash": "d2783cb09038bce22ce0af372dda8671",
+    "semantic_hash": "d2783cb09038bce22ce0af372dda8671"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SGlobalizedString.h": {
+    "mtime": 1779828766.5591302,
+    "ast_hash": "f1e7e2cc276e55b1eae9c06d39db4734",
+    "semantic_hash": "f1e7e2cc276e55b1eae9c06d39db4734"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMedia.cpp": {
+    "mtime": 1779828766.5591784,
+    "ast_hash": "740ffd12eda679d67aaaa8b94fc14cbb",
+    "semantic_hash": "740ffd12eda679d67aaaa8b94fc14cbb"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMedia.h": {
+    "mtime": 1779828766.5592253,
+    "ast_hash": "deffc371e9e15b1ab9b5d93ad0990610",
+    "semantic_hash": "deffc371e9e15b1ab9b5d93ad0990610"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMedia_fwd.h": {
+    "mtime": 1779828766.5592635,
+    "ast_hash": "578720252ec9d8a12df3a40c77076283",
+    "semantic_hash": "578720252ec9d8a12df3a40c77076283"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMemoryMedia.cpp": {
+    "mtime": 1779828766.55931,
+    "ast_hash": "58b8e5a419758da7e80f02fcb4bff823",
+    "semantic_hash": "58b8e5a419758da7e80f02fcb4bff823"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SMemoryMedia.h": {
+    "mtime": 1779828766.5593636,
+    "ast_hash": "d3fc72ad2df290e8966593f535ba5dad",
+    "semantic_hash": "d3fc72ad2df290e8966593f535ba5dad"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SOwnedMemoryMedia.cpp": {
+    "mtime": 1779828766.559413,
+    "ast_hash": "55186c9b4f216c2bc90567e19d0c6034",
+    "semantic_hash": "55186c9b4f216c2bc90567e19d0c6034"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SOwnedMemoryMedia.h": {
+    "mtime": 1779828766.5594604,
+    "ast_hash": "03a4b0ae57bd9509c1fc8948e224981e",
+    "semantic_hash": "03a4b0ae57bd9509c1fc8948e224981e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SPartialMedia.cpp": {
+    "mtime": 1779828766.55951,
+    "ast_hash": "82324a922858362a1453cf68b33a9748",
+    "semantic_hash": "82324a922858362a1453cf68b33a9748"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SPartialMedia.h": {
+    "mtime": 1779828766.5595531,
+    "ast_hash": "43212b5823261086cd1e6e76c54461a2",
+    "semantic_hash": "43212b5823261086cd1e6e76c54461a2"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersion.cpp": {
+    "mtime": 1779828766.559601,
+    "ast_hash": "86f8c472fe92a6346d14dd5e9d727099",
+    "semantic_hash": "86f8c472fe92a6346d14dd5e9d727099"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersion.h": {
+    "mtime": 1779828766.5596476,
+    "ast_hash": "59ac678e4e8d95cf848e862022a57644",
+    "semantic_hash": "59ac678e4e8d95cf848e862022a57644"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUnitTest.cpp": {
+    "mtime": 1779828766.5596924,
+    "ast_hash": "0902f7a07bf7c00aa80f9342d04d6836",
+    "semantic_hash": "0902f7a07bf7c00aa80f9342d04d6836"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtils.cpp": {
+    "mtime": 1779828766.5597372,
+    "ast_hash": "5b25704f52c969b6a2d0500e565d7184",
+    "semantic_hash": "5b25704f52c969b6a2d0500e565d7184"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtils.h": {
+    "mtime": 1779828766.5597782,
+    "ast_hash": "35c83ad15446c6233501e1ad0f249cbc",
+    "semantic_hash": "35c83ad15446c6233501e1ad0f249cbc"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtilsMac.cpp": {
+    "mtime": 1779828766.5598266,
+    "ast_hash": "55e060d3bb2cd0b6c1a15b031337fb2e",
+    "semantic_hash": "55e060d3bb2cd0b6c1a15b031337fb2e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SVersionUtilsWin.cpp": {
+    "mtime": 1779828766.5598814,
+    "ast_hash": "8ab3f3e61eeacf8a0549f5b28477046f",
+    "semantic_hash": "8ab3f3e61eeacf8a0549f5b28477046f"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/A/Resources/Media/SmugglerTypes.h": {
+    "mtime": 1779828766.5599244,
+    "ast_hash": "e7216865f82b7e3777e4a4158ff2422d",
+    "semantic_hash": "e7216865f82b7e3777e4a4158ff2422d"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/RSMedia.h": {
+    "mtime": 1779828766.5631094,
+    "ast_hash": "d7c85705888f655d4692cb78a864758a",
+    "semantic_hash": "d7c85705888f655d4692cb78a864758a"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBinary.cpp": {
+    "mtime": 1779828766.563196,
+    "ast_hash": "d794974aa6dded77b5c04066ba49f3e2",
+    "semantic_hash": "d794974aa6dded77b5c04066ba49f3e2"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBinary.h": {
+    "mtime": 1779828766.5632598,
+    "ast_hash": "1296cc23aee32522fe4330352febdabd",
+    "semantic_hash": "1296cc23aee32522fe4330352febdabd"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBinaryUnitTest.cpp": {
+    "mtime": 1779828766.5633113,
+    "ast_hash": "a6fcac73f16c4508245ba3b6f2fd3af9",
+    "semantic_hash": "a6fcac73f16c4508245ba3b6f2fd3af9"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBufferedMedia.cpp": {
+    "mtime": 1779828766.563395,
+    "ast_hash": "b9b6f96ed6dc603a47d7b1932ac77b47",
+    "semantic_hash": "b9b6f96ed6dc603a47d7b1932ac77b47"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SBufferedMedia.h": {
+    "mtime": 1779828766.563461,
+    "ast_hash": "dd3eb6f257480138f2b39fe1b7d0d31e",
+    "semantic_hash": "dd3eb6f257480138f2b39fe1b7d0d31e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SFourCharCode.cpp": {
+    "mtime": 1779828766.5635028,
+    "ast_hash": "fa866c63eb3461578eff3c4e743f3051",
+    "semantic_hash": "fa866c63eb3461578eff3c4e743f3051"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SFourCharCode.h": {
+    "mtime": 1779828766.563548,
+    "ast_hash": "76d433b82084285258cd02fc27e008b4",
+    "semantic_hash": "76d433b82084285258cd02fc27e008b4"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SGlobalizedString.cpp": {
+    "mtime": 1779828766.5636117,
+    "ast_hash": "d2783cb09038bce22ce0af372dda8671",
+    "semantic_hash": "d2783cb09038bce22ce0af372dda8671"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SGlobalizedString.h": {
+    "mtime": 1779828766.5636547,
+    "ast_hash": "f1e7e2cc276e55b1eae9c06d39db4734",
+    "semantic_hash": "f1e7e2cc276e55b1eae9c06d39db4734"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMedia.cpp": {
+    "mtime": 1779828766.5637062,
+    "ast_hash": "740ffd12eda679d67aaaa8b94fc14cbb",
+    "semantic_hash": "740ffd12eda679d67aaaa8b94fc14cbb"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMedia.h": {
+    "mtime": 1779828766.5637538,
+    "ast_hash": "deffc371e9e15b1ab9b5d93ad0990610",
+    "semantic_hash": "deffc371e9e15b1ab9b5d93ad0990610"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMedia_fwd.h": {
+    "mtime": 1779828766.5637925,
+    "ast_hash": "578720252ec9d8a12df3a40c77076283",
+    "semantic_hash": "578720252ec9d8a12df3a40c77076283"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMemoryMedia.cpp": {
+    "mtime": 1779828766.5638385,
+    "ast_hash": "58b8e5a419758da7e80f02fcb4bff823",
+    "semantic_hash": "58b8e5a419758da7e80f02fcb4bff823"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SMemoryMedia.h": {
+    "mtime": 1779828766.5638855,
+    "ast_hash": "d3fc72ad2df290e8966593f535ba5dad",
+    "semantic_hash": "d3fc72ad2df290e8966593f535ba5dad"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SOwnedMemoryMedia.cpp": {
+    "mtime": 1779828766.563936,
+    "ast_hash": "55186c9b4f216c2bc90567e19d0c6034",
+    "semantic_hash": "55186c9b4f216c2bc90567e19d0c6034"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SOwnedMemoryMedia.h": {
+    "mtime": 1779828766.5639822,
+    "ast_hash": "03a4b0ae57bd9509c1fc8948e224981e",
+    "semantic_hash": "03a4b0ae57bd9509c1fc8948e224981e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SPartialMedia.cpp": {
+    "mtime": 1779828766.564031,
+    "ast_hash": "82324a922858362a1453cf68b33a9748",
+    "semantic_hash": "82324a922858362a1453cf68b33a9748"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SPartialMedia.h": {
+    "mtime": 1779828766.564074,
+    "ast_hash": "43212b5823261086cd1e6e76c54461a2",
+    "semantic_hash": "43212b5823261086cd1e6e76c54461a2"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersion.cpp": {
+    "mtime": 1779828766.5641215,
+    "ast_hash": "86f8c472fe92a6346d14dd5e9d727099",
+    "semantic_hash": "86f8c472fe92a6346d14dd5e9d727099"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersion.h": {
+    "mtime": 1779828766.5641685,
+    "ast_hash": "59ac678e4e8d95cf848e862022a57644",
+    "semantic_hash": "59ac678e4e8d95cf848e862022a57644"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUnitTest.cpp": {
+    "mtime": 1779828766.5642133,
+    "ast_hash": "0902f7a07bf7c00aa80f9342d04d6836",
+    "semantic_hash": "0902f7a07bf7c00aa80f9342d04d6836"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtils.cpp": {
+    "mtime": 1779828766.5642579,
+    "ast_hash": "5b25704f52c969b6a2d0500e565d7184",
+    "semantic_hash": "5b25704f52c969b6a2d0500e565d7184"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtils.h": {
+    "mtime": 1779828766.5642993,
+    "ast_hash": "35c83ad15446c6233501e1ad0f249cbc",
+    "semantic_hash": "35c83ad15446c6233501e1ad0f249cbc"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtilsMac.cpp": {
+    "mtime": 1779828766.5643525,
+    "ast_hash": "55e060d3bb2cd0b6c1a15b031337fb2e",
+    "semantic_hash": "55e060d3bb2cd0b6c1a15b031337fb2e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SVersionUtilsWin.cpp": {
+    "mtime": 1779828766.5644083,
+    "ast_hash": "8ab3f3e61eeacf8a0549f5b28477046f",
+    "semantic_hash": "8ab3f3e61eeacf8a0549f5b28477046f"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/libs/macos/REX Shared Library.framework/Versions/Current/Resources/Media/SmugglerTypes.h": {
+    "mtime": 1779828766.564452,
+    "ast_hash": "e7216865f82b7e3777e4a4158ff2422d",
+    "semantic_hash": "e7216865f82b7e3777e4a4158ff2422d"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader.go": {
+    "mtime": 1781116384.2434692,
+    "ast_hash": "57e784cf9757d14eed0fa796070c09a4",
+    "semantic_hash": "57e784cf9757d14eed0fa796070c09a4"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_aiff.go": {
+    "mtime": 1781136017.2572596,
+    "ast_hash": "39aa41cba1c0317e41e57c54d393a5dd",
+    "semantic_hash": "39aa41cba1c0317e41e57c54d393a5dd"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_d2pst.go": {
+    "mtime": 1781115517.7196612,
+    "ast_hash": "7e9711e7c83e7809f0500387fde567a4",
+    "semantic_hash": "7e9711e7c83e7809f0500387fde567a4"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_drumrack.go": {
+    "mtime": 1781116063.1752267,
+    "ast_hash": "744d9ad80cce3ade6aee0a39b433a035",
+    "semantic_hash": "744d9ad80cce3ade6aee0a39b433a035"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_ot.go": {
+    "mtime": 1781135169.118364,
+    "ast_hash": "fce5a369aa1c10dd77d24cadd4a45294",
+    "semantic_hash": "fce5a369aa1c10dd77d24cadd4a45294"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_pti.go": {
+    "mtime": 1781115476.3661916,
+    "ast_hash": "b35ee068e204010171cdc93f7f0f538e",
+    "semantic_hash": "b35ee068e204010171cdc93f7f0f538e"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_simpler.go": {
+    "mtime": 1781135136.9673536,
+    "ast_hash": "a4a5a18b68ae765aeb2390a1ed8db31b",
+    "semantic_hash": "a4a5a18b68ae765aeb2390a1ed8db31b"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_wav.go": {
+    "mtime": 1781115443.3619156,
+    "ast_hash": "f64fe5b0961242b6b80b68f56b900377",
+    "semantic_hash": "f64fe5b0961242b6b80b68f56b900377"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_xrni.go": {
+    "mtime": 1781115685.3782973,
+    "ast_hash": "02387cc3169df43a5d3b8e3d385ad890",
+    "semantic_hash": "02387cc3169df43a5d3b8e3d385ad890"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/reader_xy.go": {
+    "mtime": 1781115503.4325871,
+    "ast_hash": "c418317daffa220dc47b4f33744dd521",
+    "semantic_hash": "c418317daffa220dc47b4f33744dd521"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/resample.go": {
+    "mtime": 1781135837.3923206,
+    "ast_hash": "70e76f4b00171fb3eda7370bd8f235da",
+    "semantic_hash": "70e76f4b00171fb3eda7370bd8f235da"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/rex/REX.c": {
+    "mtime": 1779828766.5646265,
+    "ast_hash": "8880fce8f5c67ea01c44f3ca2d4029a1",
+    "semantic_hash": "8880fce8f5c67ea01c44f3ca2d4029a1"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/runner.go": {
+    "mtime": 1781137478.6487226,
+    "ast_hash": "4a54acd2c4699d349825bf5911aa6d42",
+    "semantic_hash": "4a54acd2c4699d349825bf5911aa6d42"
+  },
+  "/home/g/Projects/rexconverter/internal/rexengine/types.go": {
+    "mtime": 1781116548.0582733,
+    "ast_hash": "6e24e2b49771611303ec41a472707fb2",
+    "semantic_hash": "6e24e2b49771611303ec41a472707fb2"
+  },
+  "/home/g/Projects/rexconverter/main.go": {
+    "mtime": 1781133396.3307865,
+    "ast_hash": "fd1d4c72e268fa412ba9ea36b3101ab9",
+    "semantic_hash": "fd1d4c72e268fa412ba9ea36b3101ab9"
+  },
+  "/home/g/Projects/rexconverter/main_linux.go": {
+    "mtime": 1781133885.7992299,
+    "ast_hash": "9ae024448cdaafdbaa46f6025907ee9e",
+    "semantic_hash": "9ae024448cdaafdbaa46f6025907ee9e"
+  },
+  "/home/g/Projects/rexconverter/tests/encoder_format_test.go": {
+    "mtime": 1781133715.319444,
+    "ast_hash": "99436fdc10897bb34b7d527322cd4bf2",
+    "semantic_hash": "99436fdc10897bb34b7d527322cd4bf2"
+  },
+  "/home/g/Projects/rexconverter/tests/encoder_test.go": {
+    "mtime": 1780106534.9056525,
+    "ast_hash": "75279b97a6fdef6b57bbc4ed3c75ea24",
+    "semantic_hash": "75279b97a6fdef6b57bbc4ed3c75ea24"
+  },
+  "/home/g/Projects/rexconverter/tests/integration_test.go": {
+    "mtime": 1781133528.3936586,
+    "ast_hash": "37e1c728856bdf915274eac0ced7a05c",
+    "semantic_hash": "37e1c728856bdf915274eac0ced7a05c"
+  },
+  "/home/g/Projects/rexconverter/tests/processor_test.go": {
+    "mtime": 1779828766.5651681,
+    "ast_hash": "7f834996340b498610fad16d3f339064",
+    "semantic_hash": "7f834996340b498610fad16d3f339064"
+  },
+  "/home/g/Projects/rexconverter/tests/reader_test.go": {
+    "mtime": 1781136246.1663437,
+    "ast_hash": "0a657533047b0099072ea90a0b93435b",
+    "semantic_hash": "0a657533047b0099072ea90a0b93435b"
+  },
+  "/home/g/Projects/rexconverter/.github/workflows/ci.yml": {
+    "mtime": 1781136255.744356,
+    "ast_hash": "a071c19c41bd3f243ec2bf20c5d52b6c",
+    "semantic_hash": "a071c19c41bd3f243ec2bf20c5d52b6c"
+  },
+  "/home/g/Projects/rexconverter/.github/workflows/release.yml": {
+    "mtime": 1781134731.9170218,
+    "ast_hash": "2d505f3955fcbe01809d1c0f20763d1d",
+    "semantic_hash": "2d505f3955fcbe01809d1c0f20763d1d"
+  },
+  "/home/g/Projects/rexconverter/AGENTS.md": {
+    "mtime": 1781137665.6206906,
+    "ast_hash": "5b98c4db30694dd21787d61c19ff494f",
+    "semantic_hash": "5b98c4db30694dd21787d61c19ff494f"
+  },
+  "/home/g/Projects/rexconverter/CHANGELOG.md": {
+    "mtime": 1781116968.903484,
+    "ast_hash": "2bb43d08be6b1f2c1ddb63fc19cc21a9",
+    "semantic_hash": "2bb43d08be6b1f2c1ddb63fc19cc21a9"
+  },
+  "/home/g/Projects/rexconverter/CODE_OF_CONDUCT.md": {
+    "mtime": 1779828766.5500686,
+    "ast_hash": "23fd19ef659ede7c806d656ba2b7acdd",
+    "semantic_hash": "23fd19ef659ede7c806d656ba2b7acdd"
+  },
+  "/home/g/Projects/rexconverter/CONTRIBUTING.md": {
+    "mtime": 1779828766.5501087,
+    "ast_hash": "819e4e37cddcc616b65f1676afa49ce3",
+    "semantic_hash": "819e4e37cddcc616b65f1676afa49ce3"
+  },
+  "/home/g/Projects/rexconverter/NOTICE.md": {
+    "mtime": 1779828766.5502877,
+    "ast_hash": "3da3454587452658d921a795e1928476",
+    "semantic_hash": "3da3454587452658d921a795e1928476"
+  },
+  "/home/g/Projects/rexconverter/README.md": {
+    "mtime": 1781116959.933453,
+    "ast_hash": "0977a228150756a03a04b4c4dfa9814b",
+    "semantic_hash": "0977a228150756a03a04b4c4dfa9814b"
+  },
+  "/home/g/Projects/rexconverter/RELEASE-NOTES.md": {
+    "mtime": 1780106534.8661182,
+    "ast_hash": "1be5118632e4976af4061f02ed2e5314",
+    "semantic_hash": "1be5118632e4976af4061f02ed2e5314"
+  },
+  "/home/g/Projects/rexconverter/REX_SDK_LICENSE.txt": {
+    "mtime": 1779828766.55044,
+    "ast_hash": "35b9a337963280d366e653dcb538550f",
+    "semantic_hash": "35b9a337963280d366e653dcb538550f"
+  },
+  "/home/g/Projects/rexconverter/TODO.md": {
+    "mtime": 1780992017.3545787,
+    "ast_hash": "49cd97ac4b9c8f2517e72d941361d3ba",
+    "semantic_hash": "49cd97ac4b9c8f2517e72d941361d3ba"
+  },
+  "/home/g/Projects/rexconverter/docs/phase2-output-plan.md": {
+    "mtime": 1781116858.446907,
+    "ast_hash": "96d284d2139716e5da0527e2ad9aaff2",
+    "semantic_hash": "96d284d2139716e5da0527e2ad9aaff2"
+  },
+  "/home/g/Projects/rexconverter/docs/phase2-plan.md": {
+    "mtime": 1781115266.0243208,
+    "ast_hash": "48b903e772dbbcbb3fb9a60faba19227",
+    "semantic_hash": "48b903e772dbbcbb3fb9a60faba19227"
+  },
+  "/home/g/Projects/rexconverter/tests/testdata/PreviewRender_Tempo120000.txt": {
+    "mtime": 1779828766.5731554,
+    "ast_hash": "76b3c67d06f1bd3a827f5b05bb796d8d",
+    "semantic_hash": "76b3c67d06f1bd3a827f5b05bb796d8d"
+  },
+  "/home/g/Projects/rexconverter/tests/testdata/Slice_001.txt": {
+    "mtime": 1779828766.5745523,
+    "ast_hash": "c5c2e6572cb0e032c4aa038049fb5b67",
+    "semantic_hash": "c5c2e6572cb0e032c4aa038049fb5b67"
+  },
+  "/home/g/Projects/rexconverter/tests/testdata/Slice_002.txt": {
+    "mtime": 1779828766.5748427,
+    "ast_hash": "d538b2edaa1545a5a0fa2ed0743cde32",
+    "semantic_hash": "d538b2edaa1545a5a0fa2ed0743cde32"
+  },
+  "/home/g/Projects/rexconverter/tests/testdata/Slice_003.txt": {
+    "mtime": 1779828766.5754206,
+    "ast_hash": "078d4ea3cf0eec6f75fb4ce287076874",
+    "semantic_hash": "078d4ea3cf0eec6f75fb4ce287076874"
+  },
+  "/home/g/Projects/rexconverter/tests/testdata/Slice_004.txt": {
+    "mtime": 1779828766.5758076,
+    "ast_hash": "aa4db91949c3a3088e422f76360dea66",
+    "semantic_hash": "aa4db91949c3a3088e422f76360dea66"
+  },
+  "/home/g/Projects/rexconverter/tests/testdata/Slice_005.txt": {
+    "mtime": 1779828766.5759566,
+    "ast_hash": "f5f9e7005d39c2626313f983b22508af",
+    "semantic_hash": "f5f9e7005d39c2626313f983b22508af"
+  },
+  "/home/g/Projects/rexconverter/tests/test.wav": {
+    "mtime": 1781137513.5947173,
+    "ast_hash": "4dd45916aefebc0d0c274d55a2185989",
+    "semantic_hash": "4dd45916aefebc0d0c274d55a2185989"
+  }
+}

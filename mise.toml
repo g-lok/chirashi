@@ -1,0 +1,140 @@
+[env]
+# REX SDK root directory. Override via env var or ~/.config/mise/config.toml.
+REX_SDK = "/tmp/rexlibs"
+
+[tools]
+go = "1.26.3"
+zig = "0.16.0"
+
+[tasks.build]
+description = "Compile native macOS binary using build.zig coordinator pipeline"
+run = """
+mkdir -p build && \
+VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo dev)" && \
+zig build -Dtarget=x86_64-macos -Doptimize=ReleaseSafe "-Dversion=$VERSION" && \
+cp zig-out/bin/rexconverter build/rexconverter && chmod +x build/rexconverter && \
+rm -rf build/Frameworks && mkdir -p build/Frameworks && \
+cp -r "internal/rexengine/libs/macos/REX Shared Library.framework" build/Frameworks/ && \
+install_name_tool -change "@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "@executable_path/Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" build/rexconverter && \
+rm -rf zig-out zig-cache internal/rexengine/go_engine.a internal/rexengine/go_engine.h
+"""
+
+[tasks.build.env]
+CGO_LDFLAGS_ALLOW = "-Wl,-rpath,@executable_path"
+
+[tasks.test]
+description = "Run Go test suite (builds macOS binary first)"
+run = """
+mise run build && go test ./tests/... -v
+"""
+
+[tasks.test-linux]
+description = "Run Go test suite on Linux binary (no REX tests)"
+run = """
+mise run build-linux && go test ./tests/... -v
+"""
+
+[tasks.build-linux]
+description = "Build Linux binaries (amd64 + arm64 + arm) without REX SDK"
+run = """
+VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
+LDFLAGS="-X github.com/g-lok/rexconverter/cmd.version=$VERSION"
+mkdir -p build
+
+echo "=== Linux amd64 ==="
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="$LDFLAGS" -o build/rexconverter-linux-amd64 main_linux.go
+
+echo "=== Linux arm64 ==="
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="$LDFLAGS" -o build/rexconverter-linux-arm64 main_linux.go
+
+echo "=== Linux arm (32-bit, armv7) ==="
+CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="$LDFLAGS" -o build/rexconverter-linux-arm main_linux.go
+
+echo "=== Done ==="
+ls -lh build/rexconverter-linux-*
+"""
+
+[tasks.build-releases]
+description = "Build macOS universal + Windows x86_64 release archives in build/releases/"
+run = """
+VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
+RELEASES_DIR="build/releases"
+REX_SDK="${REX_SDK:-/tmp/rexlibs}"
+mkdir -p "$RELEASES_DIR"
+
+# Prevent CI shell parsers and path conversion layers from mangling the Go package URL path
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL="*"
+LDFLAGS="-X github.com/g-lok/rexconverter/cmd.version=$VERSION"
+
+echo "=== Building Go archives ==="
+
+# macOS amd64 (Explicitly pin zig cc to prevent arm64 runner compilation leaks)
+CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC="zig cc -target x86_64-macos" go build -buildmode=c-archive -tags netgo \
+  "-ldflags=$LDFLAGS" -o "build/go_engine_amd64.a" main.go
+
+# macOS arm64
+CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC="zig cc -target aarch64-macos" go build -buildmode=c-archive -tags netgo \
+  "-ldflags=$LDFLAGS" -o "build/go_engine_arm64.a" main.go
+
+# Windows amd64
+CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC="zig cc -target x86_64-windows-gnu" go build -buildmode=c-archive -tags netgo \
+  "-ldflags=$LDFLAGS" -o "build/go_engine_windows.a" main.go
+
+# Fix BSD ar format → lld-link compatible (Explicitly use zig ar toolchain system)
+cd build && zig ar x go_engine_windows.a 2>/dev/null && zig ar rcs go_engine_windows.a *.o 2>/dev/null && rm -f *.o 2>/dev/null && cd ..
+
+echo "=== Building Zig binaries ==="
+
+# macOS x86_64
+zig build -Dtarget=x86_64-macos -Doptimize=ReleaseSafe "-Dversion=$VERSION" \
+  "-Dgo-archive=build/go_engine_amd64.a" --prefix build/zig-out-x86
+
+# macOS arm64
+zig build -Dtarget=aarch64-macos -Doptimize=ReleaseSafe "-Dversion=$VERSION" \
+  "-Dgo-archive=build/go_engine_arm64.a" --prefix build/zig-out-arm64
+
+# Windows x86_64
+zig build -Dtarget=x86_64-windows-gnu -Doptimize=ReleaseSafe "-Dversion=$VERSION" \
+  "-Dgo-archive=build/go_engine_windows.a" --prefix build/zig-out-win
+
+echo "=== Packaging macOS release ==="
+
+# Stage REX SDK framework for packaging
+rm -rf build/Frameworks
+mkdir -p build/Frameworks
+cp -r "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework" build/Frameworks/
+
+# Create universal binary
+lipo -create \
+  build/zig-out-x86/bin/rexconverter \
+  build/zig-out-arm64/bin/rexconverter \
+  -output "$RELEASES_DIR/rexconverter-macos-universal"
+
+install_name_tool -change "@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "@executable_path/Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "$RELEASES_DIR/rexconverter-macos-universal"
+
+# Build release directory
+MACOS_DIR="$RELEASES_DIR/rexconverter-$VERSION-macos"
+mkdir -p "$MACOS_DIR"
+cp "$RELEASES_DIR/rexconverter-macos-universal" "$MACOS_DIR/rexconverter"
+cp -r build/Frameworks "$MACOS_DIR/Frameworks"
+cd "$RELEASES_DIR" && tar czf "rexconverter-$VERSION-macos.tar.gz" "rexconverter-$VERSION-macos" && cd ../..
+
+echo "=== Packaging Windows release ==="
+
+WIN_DIR="$RELEASES_DIR/rexconverter-$VERSION-windows"
+mkdir -p "$WIN_DIR"
+cp "build/zig-out-win/bin/rexconverter.exe" "$WIN_DIR/"
+cp "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/REX Shared Library.dll" "$WIN_DIR/"
+cp "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/REX Shared Library.lib" "$WIN_DIR/"
+cd "$RELEASES_DIR" && zip -r "rexconverter-$VERSION-windows.zip" "rexconverter-$VERSION-windows" && cd ../..
+
+echo "=== Cleanup ==="
+rm -rf build/zig-out-x86 build/zig-out-arm64 build/zig-out-win
+rm -f build/go_engine_*.a build/go_engine_*.h
+rm -f "$RELEASES_DIR/rexconverter-macos-universal"
+rm -rf "$RELEASES_DIR/rexconverter-$VERSION-macos" "$RELEASES_DIR/rexconverter-$VERSION-windows"
+
+echo "=== Done ==="
+ls -lh "$RELEASES_DIR/"
+"""
