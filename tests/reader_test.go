@@ -1,4 +1,4 @@
-package rexconverter_test
+package chirashi_test
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/g-lok/rexconverter/internal/rexengine"
+	"github.com/g-lok/chirashi/internal/engine"
 )
 
 func TestDetectReader_ByExtension(t *testing.T) {
@@ -35,7 +35,7 @@ func TestDetectReader_ByExtension(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		reader := rexengine.DetectReader(tt.ext)
+		reader := engine.DetectReader(tt.ext)
 		if (reader != nil) != tt.want {
 			t.Errorf("DetectReader(%q) = %v, want exists=%v", tt.ext, reader, tt.want)
 		}
@@ -43,7 +43,7 @@ func TestDetectReader_ByExtension(t *testing.T) {
 }
 
 func TestProbeInput_Invalid(t *testing.T) {
-	_, err := rexengine.ProbeInput([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+	_, err := engine.ProbeInput([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 	if err == nil {
 		t.Error("expected error for invalid input")
 	}
@@ -98,7 +98,7 @@ func TestWAVReader_CueMarkers(t *testing.T) {
 		[]uint32{2, 5, 8},
 	)
 
-	slices, err := rexengine.DetectReader(".wav").Read(wavData, 44100)
+	slices, err := engine.DetectReader(".wav").Read(wavData, 44100)
 	if err != nil {
 		t.Fatalf("WAV read failed: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestWAVReader_NoCues(t *testing.T) {
 	binary.Write(buf, binary.LittleEndian, int16(100))
 	binary.Write(buf, binary.LittleEndian, int16(200))
 
-	slices, err := rexengine.DetectReader(".wav").Read(buf.Bytes(), 44100)
+	slices, err := engine.DetectReader(".wav").Read(buf.Bytes(), 44100)
 	if err != nil {
 		t.Fatalf("WAV read failed: %v", err)
 	}
@@ -156,7 +156,7 @@ func TestXRNIReader_Basic(t *testing.T) {
 		t.Fatalf("read XRNI: %v", err)
 	}
 
-	reader := rexengine.DetectReader(".xrni")
+	reader := engine.DetectReader(".xrni")
 	if reader == nil {
 		t.Fatal("XRNI reader not registered")
 	}
@@ -184,7 +184,7 @@ func TestSimplerReader_Basic(t *testing.T) {
 		t.Fatalf("read ADV: %v", err)
 	}
 
-	reader := rexengine.DetectReader(".adv")
+	reader := engine.DetectReader(".adv")
 	if reader == nil {
 		t.Fatal("Simpler reader not registered")
 	}
@@ -212,7 +212,7 @@ func TestDrumRackReader_Basic(t *testing.T) {
 		t.Fatalf("read ADG: %v", err)
 	}
 
-	reader := rexengine.DetectReader(".adg")
+	reader := engine.DetectReader(".adg")
 	if reader == nil {
 		t.Fatal("Drum Rack reader not registered")
 	}
@@ -258,7 +258,7 @@ func TestAIFFReader_Minimal(t *testing.T) {
 	binary.Write(buf, binary.BigEndian, uint32(0)) // blockSize
 	buf.Write(ssndAudio)
 
-	slices, err := rexengine.DetectReader(".aiff").Read(buf.Bytes(), 44100)
+	slices, err := engine.DetectReader(".aiff").Read(buf.Bytes(), 44100)
 	if err != nil {
 		t.Fatalf("AIFF read failed: %v", err)
 	}
@@ -291,7 +291,7 @@ func TestPTIReader_Minimal(t *testing.T) {
 	binary.Write(buf, binary.LittleEndian, int16(100))
 	binary.Write(buf, binary.LittleEndian, int16(200))
 
-	slices, err := rexengine.DetectReader(".pti").Read(buf.Bytes(), 44100)
+	slices, err := engine.DetectReader(".pti").Read(buf.Bytes(), 44100)
 	if err != nil {
 		t.Fatalf("PTI read failed: %v", err)
 	}
@@ -305,7 +305,7 @@ func TestPTIReader_Minimal(t *testing.T) {
 
 func TestReader_FormatRountrips(t *testing.T) {
 	wavData := buildMinimalWAV()
-	slices, err := rexengine.DetectReader(".wav").Read(wavData, 44100)
+	slices, err := engine.DetectReader(".wav").Read(wavData, 44100)
 	if err != nil {
 		t.Fatalf("WAV read: %v", err)
 	}

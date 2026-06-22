@@ -3,7 +3,7 @@
 package main
 
 import "C"
-import "github.com/g-lok/rexconverter/cmd"
+import "github.com/g-lok/chirashi/cmd"
 
 //export GoMainEntry
 func GoMainEntry() {

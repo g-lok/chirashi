@@ -1,4 +1,4 @@
-package rexconverter_test
+package chirashi_test
 
 import (
 	"bufio"
@@ -16,15 +16,14 @@ import (
 	"testing"
 )
 
-// binaryPath is the path to the built rexconverter executable.
+// binaryPath is the path to the built chirashi executable.
 var binaryPath = findBinary()
 
 func findBinary() string {
-	// Check common locations
 	candidates := []string{
-		"../build/rexconverter",
-		"build/rexconverter",
-		"./rexconverter",
+		"../build/chirashi",
+		"build/chirashi",
+		"./chirashi",
 	}
 	for _, p := range candidates {
 		if _, err := os.Stat(p); err == nil {
@@ -32,8 +31,7 @@ func findBinary() string {
 			return abs
 		}
 	}
-	// Allow override via env var
-	if p := os.Getenv("REXCONVERTER_BIN"); p != "" {
+	if p := os.Getenv("CHIRASHI_BIN"); p != "" {
 		return p
 	}
 	return ""
@@ -300,7 +298,7 @@ func compareWAVPCM(path1, path2 string, tolerance int) error {
 
 func TestBinaryExists(t *testing.T) {
 	if binaryPath == "" {
-		t.Skip("rexconverter binary not found; build with 'mise run build' first")
+		t.Skip("chirashi binary not found; build with 'mise run build' first")
 	}
 	info, err := os.Stat(binaryPath)
 	if err != nil {
@@ -321,7 +319,7 @@ func TestCLIHelp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(out), "rexconverter") {
+	if !strings.Contains(string(out), "chirashi") {
 		t.Fatal("help output doesn't contain binary name")
 	}
 }
@@ -484,7 +482,7 @@ func TestIntegration_NormalizeSplits(t *testing.T) {
 
 	dir := t.TempDir()
 	outPath := filepath.Join(dir, "norm.wav")
-	cmd := exec.Command(binaryPath, rx2Path, "-s", "44100", "-b", "16", "-l", "64", "-n", "-o", outPath)
+	cmd := exec.Command(binaryPath, rx2Path, "-s", "44100", "-b", "16", "-l", "64", "-o", outPath)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("binary failed: %v\noutput: %s", err, string(out))
@@ -924,7 +922,7 @@ func TestLoopRenderMatch_Stereo_Normalize(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	cmd := exec.Command(binaryPath, rx2Path, "-s", "44100", "-b", "16", "-l", "64", "-n", "-e", dir)
+	cmd := exec.Command(binaryPath, rx2Path, "-s", "44100", "-b", "16", "-l", "64", "-e", dir)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("binary failed: %v\noutput: %s", err, string(out))

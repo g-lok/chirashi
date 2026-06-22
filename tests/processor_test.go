@@ -1,4 +1,4 @@
-package rexconverter_test
+package chirashi_test
 
 import (
 	"math"

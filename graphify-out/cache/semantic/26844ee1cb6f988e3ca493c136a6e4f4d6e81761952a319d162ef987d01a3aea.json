@@ -1,1 +1,0 @@
-{"nodes": [], "edges": [{"source": "rexconverter", "target": "REX_SDK_license", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "NOTICE.md", "source_location": null, "weight": 1.0}], "hyperedges": []}

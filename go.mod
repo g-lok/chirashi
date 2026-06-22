@@ -1,4 +1,4 @@
-module github.com/g-lok/rexconverter
+module github.com/g-lok/chirashi
 
 go 1.26.3
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/g-lok/rexconverter/internal/rexengine"
+	"github.com/g-lok/chirashi/internal/engine"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +35,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:     "rexconverter [INPUT_FILES...]",
+	Use:     "chirashi [INPUT_FILES...]",
 	Short:   "Cross-format sliced instrument converter for hardware samplers and DAWs",
 	Version: version,
 	Long: `Converts sliced instruments (REX, RX2, RCY, XRNI, ADV, ALS, ADG) into hardware sampler
@@ -90,16 +90,16 @@ mono downmix, and slice grouping.`,
 			inputFiles = append(inputFiles, args...)
 		}
 
-		if rexengine.HasREX() {
-			if err := rexengine.InitEngine(verbose); err != nil {
+		if engine.HasREX() {
+			if err := engine.InitEngine(verbose); err != nil {
 				return fmt.Errorf("failed to initialize REX SDK: %w", err)
 			}
-			defer rexengine.CloseEngine()
+			defer engine.CloseEngine()
 		} else if verbose {
 			fmt.Println("REX SDK not available on this platform — REX/RX2/RCY input disabled")
 		}
 
-		pipelineConfig := rexengine.PipelineConfig{
+		pipelineConfig := engine.PipelineConfig{
 			InputFiles:      inputFiles,
 			InputDir:        inputDir,
 			OutputFile:      outputFile,
@@ -122,7 +122,7 @@ mono downmix, and slice grouping.`,
 			SamplePathMode:  samplePathMode,
 		}
 
-		return rexengine.ExecuteConversionPipeline(pipelineConfig)
+		return engine.ExecuteConversionPipeline(pipelineConfig)
 	},
 }
 

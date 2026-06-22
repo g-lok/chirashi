@@ -6,17 +6,23 @@ REX_SDK = "/tmp/rexlibs"
 go = "1.26.3"
 zig = "0.16.0"
 
+[tasks.graphify]
+description = "Build knowledge graph"
+run = "poetry run graphify ."
+
 [tasks.build]
 description = "Compile native macOS binary using build.zig coordinator pipeline"
 run = """
 mkdir -p build && \
 VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo dev)" && \
+mkdir -p internal/engine/libs/macos && \
+cp -r "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework" internal/engine/libs/macos/ && \
 zig build -Dtarget=x86_64-macos -Doptimize=ReleaseSafe "-Dversion=$VERSION" && \
-cp zig-out/bin/rexconverter build/rexconverter && chmod +x build/rexconverter && \
+cp zig-out/bin/chirashi build/chirashi && chmod +x build/chirashi && \
 rm -rf build/Frameworks && mkdir -p build/Frameworks && \
-cp -r "internal/rexengine/libs/macos/REX Shared Library.framework" build/Frameworks/ && \
-install_name_tool -change "@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "@executable_path/Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" build/rexconverter && \
-rm -rf zig-out zig-cache internal/rexengine/go_engine.a internal/rexengine/go_engine.h
+cp -r "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework" build/Frameworks/ && \
+install_name_tool -change "@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "@executable_path/Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" build/chirashi && \
+rm -rf zig-out zig-cache internal/engine/go_engine.a internal/engine/go_engine.h
 """
 
 [tasks.build.env]
@@ -38,20 +44,20 @@ mise run build-linux && go test ./tests/... -v
 description = "Build Linux binaries (amd64 + arm64 + arm) without REX SDK"
 run = """
 VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
-LDFLAGS="-X github.com/g-lok/rexconverter/cmd.version=$VERSION"
+LDFLAGS="-X github.com/g-lok/chirashi/cmd.version=$VERSION"
 mkdir -p build
 
 echo "=== Linux amd64 ==="
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="$LDFLAGS" -o build/rexconverter-linux-amd64 main_linux.go
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="$LDFLAGS" -o build/chirashi-linux-amd64 main_linux.go
 
 echo "=== Linux arm64 ==="
-CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="$LDFLAGS" -o build/rexconverter-linux-arm64 main_linux.go
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="$LDFLAGS" -o build/chirashi-linux-arm64 main_linux.go
 
 echo "=== Linux arm (32-bit, armv7) ==="
-CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="$LDFLAGS" -o build/rexconverter-linux-arm main_linux.go
+CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="$LDFLAGS" -o build/chirashi-linux-arm main_linux.go
 
 echo "=== Done ==="
-ls -lh build/rexconverter-linux-*
+ls -lh build/chirashi-linux-*
 """
 
 [tasks.build-releases]
@@ -65,7 +71,7 @@ mkdir -p "$RELEASES_DIR"
 # Prevent CI shell parsers and path conversion layers from mangling the Go package URL path
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"
-LDFLAGS="-X github.com/g-lok/rexconverter/cmd.version=$VERSION"
+LDFLAGS="-X github.com/g-lok/chirashi/cmd.version=$VERSION"
 
 echo "=== Building Go archives ==="
 
@@ -85,6 +91,10 @@ CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC="zig cc -target x86_64-windows-gnu" g
 cd build && zig ar x go_engine_windows.a 2>/dev/null && zig ar rcs go_engine_windows.a *.o 2>/dev/null && rm -f *.o 2>/dev/null && cd ..
 
 echo "=== Building Zig binaries ==="
+
+# Stage REX SDK framework for Zig compile-time linking
+mkdir -p internal/engine/libs/macos
+cp -r "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework" internal/engine/libs/macos/
 
 # macOS x86_64
 zig build -Dtarget=x86_64-macos -Doptimize=ReleaseSafe "-Dversion=$VERSION" \
@@ -107,33 +117,33 @@ cp -r "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework" bu
 
 # Create universal binary
 lipo -create \
-  build/zig-out-x86/bin/rexconverter \
-  build/zig-out-arm64/bin/rexconverter \
-  -output "$RELEASES_DIR/rexconverter-macos-universal"
+  build/zig-out-x86/bin/chirashi \
+  build/zig-out-arm64/bin/chirashi \
+  -output "$RELEASES_DIR/chirashi-macos-universal"
 
-install_name_tool -change "@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "@executable_path/Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "$RELEASES_DIR/rexconverter-macos-universal"
+install_name_tool -change "@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "@executable_path/Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library" "$RELEASES_DIR/chirashi-macos-universal"
 
 # Build release directory
-MACOS_DIR="$RELEASES_DIR/rexconverter-$VERSION-macos"
+MACOS_DIR="$RELEASES_DIR/chirashi-$VERSION-macos"
 mkdir -p "$MACOS_DIR"
-cp "$RELEASES_DIR/rexconverter-macos-universal" "$MACOS_DIR/rexconverter"
+cp "$RELEASES_DIR/chirashi-macos-universal" "$MACOS_DIR/chirashi"
 cp -r build/Frameworks "$MACOS_DIR/Frameworks"
-cd "$RELEASES_DIR" && tar czf "rexconverter-$VERSION-macos.tar.gz" "rexconverter-$VERSION-macos" && cd ../..
+cd "$RELEASES_DIR" && tar czf "chirashi-$VERSION-macos.tar.gz" "chirashi-$VERSION-macos" && cd ../..
 
 echo "=== Packaging Windows release ==="
 
-WIN_DIR="$RELEASES_DIR/rexconverter-$VERSION-windows"
+WIN_DIR="$RELEASES_DIR/chirashi-$VERSION-windows"
 mkdir -p "$WIN_DIR"
-cp "build/zig-out-win/bin/rexconverter.exe" "$WIN_DIR/"
+cp "build/zig-out-win/bin/chirashi.exe" "$WIN_DIR/"
 cp "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/REX Shared Library.dll" "$WIN_DIR/"
 cp "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/REX Shared Library.lib" "$WIN_DIR/"
-cd "$RELEASES_DIR" && zip -r "rexconverter-$VERSION-windows.zip" "rexconverter-$VERSION-windows" && cd ../..
+cd "$RELEASES_DIR" && zip -r "chirashi-$VERSION-windows.zip" "chirashi-$VERSION-windows" && cd ../..
 
 echo "=== Cleanup ==="
 rm -rf build/zig-out-x86 build/zig-out-arm64 build/zig-out-win
 rm -f build/go_engine_*.a build/go_engine_*.h
-rm -f "$RELEASES_DIR/rexconverter-macos-universal"
-rm -rf "$RELEASES_DIR/rexconverter-$VERSION-macos" "$RELEASES_DIR/rexconverter-$VERSION-windows"
+rm -f "$RELEASES_DIR/chirashi-macos-universal"
+rm -rf "$RELEASES_DIR/chirashi-$VERSION-macos" "$RELEASES_DIR/chirashi-$VERSION-windows"
 
 echo "=== Done ==="
 ls -lh "$RELEASES_DIR/"

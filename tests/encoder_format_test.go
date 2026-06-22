@@ -1,4 +1,4 @@
-package rexconverter_test
+package chirashi_test
 
 import (
 	"archive/zip"
@@ -17,7 +17,7 @@ func hasBinary() bool {
 	return err == nil
 }
 
-func runRexconverter(t *testing.T, args ...string) (string, error) {
+func runChirashi(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 	cmd := exec.Command(binaryPath, args...)
 	var out bytes.Buffer
@@ -58,7 +58,7 @@ func findTestREX() string {
 
 func TestFormat_FLAG_PTI(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found; build with `mise run build` first")
+		t.Skip("binary not found; build with `mise run build` first")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -66,7 +66,7 @@ func TestFormat_FLAG_PTI(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "pti",
 		"--output-dir", dir,
 		rexFile,
@@ -100,7 +100,7 @@ func TestFormat_FLAG_PTI(t *testing.T) {
 
 func TestFormat_FLAG_OT(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -108,7 +108,7 @@ func TestFormat_FLAG_OT(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "ot",
 		"--output-dir", dir,
 		rexFile,
@@ -134,7 +134,7 @@ func TestFormat_FLAG_OT(t *testing.T) {
 				t.Fatalf("bad OT magic: %q", data[0:4])
 			}
 			var checksum uint16
-			for i := 0x10; i < 0x340; i++ {
+			for i := 0x10; i < 0x33E; i++ {
 				checksum += uint16(data[i])
 			}
 			storedChecksum := binary.BigEndian.Uint16(data[0x33E:0x340])
@@ -156,7 +156,7 @@ func TestFormat_FLAG_OT(t *testing.T) {
 
 func TestFormat_FLAG_OP1(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -164,7 +164,7 @@ func TestFormat_FLAG_OP1(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "aif-op1",
 		"--output-dir", dir,
 		rexFile,
@@ -197,7 +197,7 @@ func TestFormat_FLAG_OP1(t *testing.T) {
 
 func TestFormat_FLAG_XY(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -205,7 +205,7 @@ func TestFormat_FLAG_XY(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "xy",
 		"--output-dir", dir,
 		rexFile,
@@ -252,7 +252,7 @@ func TestFormat_FLAG_XY(t *testing.T) {
 
 func TestFormat_FLAG_EL(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -260,7 +260,7 @@ func TestFormat_FLAG_EL(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "el",
 		"--output-dir", dir,
 		rexFile,
@@ -300,7 +300,7 @@ func TestFormat_FLAG_EL(t *testing.T) {
 
 func TestFormat_FLAG_DT2(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -308,7 +308,7 @@ func TestFormat_FLAG_DT2(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "d2pst",
 		"--output-dir", dir,
 		rexFile,
@@ -351,7 +351,7 @@ func TestFormat_FLAG_DT2(t *testing.T) {
 
 func TestFormat_NoSlices(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -359,7 +359,7 @@ func TestFormat_NoSlices(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "wav",
 		"--no-slices",
 		"--output-dir", dir,
@@ -383,7 +383,7 @@ func TestFormat_NoSlices(t *testing.T) {
 
 func TestFormat_MonoMode_Sum(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -391,7 +391,7 @@ func TestFormat_MonoMode_Sum(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	_, err := runRexconverter(t,
+	_, err := runChirashi(t,
 		"--format", "wav",
 		"--mono",
 		"--mono-mode", "sum",
@@ -405,7 +405,7 @@ func TestFormat_MonoMode_Sum(t *testing.T) {
 
 func TestFormat_MonoMode_Left(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -413,7 +413,7 @@ func TestFormat_MonoMode_Left(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	_, err := runRexconverter(t,
+	_, err := runChirashi(t,
 		"--format", "wav",
 		"--mono",
 		"--mono-mode", "left",
@@ -427,7 +427,7 @@ func TestFormat_MonoMode_Left(t *testing.T) {
 
 func TestFormat_NoSlices_PTI(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	rexFile := findTestREX()
 	if rexFile == "" {
@@ -435,7 +435,7 @@ func TestFormat_NoSlices_PTI(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "pti",
 		"--no-slices",
 		"--output-dir", dir,
@@ -448,7 +448,7 @@ func TestFormat_NoSlices_PTI(t *testing.T) {
 
 func TestFormat_UnknownFormatDefaultsToWAV(t *testing.T) {
 	if !hasBinary() {
-		t.Skip("rexconverter binary not found")
+		t.Skip("binary not found")
 	}
 	// Unknown format name gracefully falls through to WAV encoder
 	wavPath := filepath.Join(t.TempDir(), "test.wav")
@@ -456,7 +456,7 @@ func TestFormat_UnknownFormatDefaultsToWAV(t *testing.T) {
 	if err := os.WriteFile(wavPath, wavData, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	output, err := runRexconverter(t,
+	output, err := runChirashi(t,
 		"--format", "bogus",
 		wavPath,
 	)

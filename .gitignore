@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+
+# REX SDK framework — downloaded and decrypted at build time
+internal/engine/libs/
+
+# Build artifacts
+go_engine.a
+go_engine.h
+*.o
+*.a
+*.h
+
+# Python / Poetry
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.cache/
+
+# Zig build cache and output
+.zig-cache/
+zig-out/
+
+# Graphify output (regenerated on demand)
+graphify-out/
