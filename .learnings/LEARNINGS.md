@@ -344,3 +344,294 @@ AUR (Arch User Repository) account registrations are down — cannot publish new
 - Tags: aur, arch, packaging, blocked, external
 - Related Files: ~/Projects/aur/chirashi-bin/PKGBUILD, ~/Projects/aur/chirashi-bin/.SRCINFO, /home/g/Documents/chirashi-aur-instructions.md
 
+---
+
+## [LRN-20260623-011] bug
+
+**Logged**: 2026-06-23T08:00:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+AIFF MARK chunk was corrupting output files: null-terminated C strings written instead of Pascal-style (1-byte length prefix), and `markSize` formula was wrong.
+
+### Details
+- IFF spec requires Pascal strings: 1-byte length prefix (not null terminator)
+- Old formula: `2 + numMarkers*8 + numMarkers*2` (8 bytes per marker + 2 bytes per string)
+- Correct formula: `2 + sum((7 + len(name) + pad))` (2 for numMarkers, 7 per fixed marker fields, len(name) for string, padding to even)
+- Each marker name padded to even length per IFF spec
+
+### Metadata
+- Source: error
+- Related Files: internal/engine/encoder_aiff.go, internal/engine/reader_aiff.go
+- Tags: aiff, iff, mark, audio
+- Pattern-Key: aiff.mark.pascal
+
+### Resolution
+- **Resolved**: 2026-06-23T08:00:00Z
+- **Notes**: Encoder now writes Pascal strings. Reader updated to parse Pascal strings correctly.
+
+---
+
+## [LRN-20260623-012] bug
+
+**Logged**: 2026-06-23T08:00:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+AIFF 80-bit extended float formula was wrong everywhere: used `rateBits + rateFrac/2^64` which produced 16398 for 44100 instead of 44100.
+
+### Details
+- AIFF sample rate uses 80-bit extended precision float (IEEE 754 extended)
+- Old formula: `rateBits + rateFrac / 2^64` — completely wrong
+- Correct formula: `ldexp(mantissa, exponent - 16383 - 63)` where mantissa = 2^63 + fraction
+- Bug was in both `reader_aiff.go` and `reader_xrni.go`
+
+### Metadata
+- Source: error
+- Related Files: internal/engine/reader_aiff.go, internal/engine/reader_xrni.go
+- Tags: aiff, extended-float, sample-rate
+- Pattern-Key: aiff.extended.float.formula
+
+### Resolution
+- **Resolved**: 2026-06-23T08:00:00Z
+
+---
+
+## [LRN-20260623-013] best_practice
+
+**Logged**: 2026-06-23T09:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+PTI TI-format reader must parse 392-byte header with ratio table at offset 280–375 as uint16 LE. Each value / 65535 gives normalized frame position.
+
+### Details
+- Community format verified against jaap3/pti-file-format + jaap3/pti-tools
+- Magic: `TI\x01`
+- 392-byte header (not the old 4-byte magic assumption)
+- Ratio table at bytes 280–375 (96 bytes = 48 × uint16 LE)
+- Embeds PCM audio after header
+- Legacy PTI\x00 format is a separate code path
+
+### Metadata
+- Tags: pti, polyend-tracker, format
+- Related Files: internal/engine/reader_pti.go
+
+### Resolution
+- **Resolved**: 2026-06-23T09:00:00Z
+
+---
+
+## [LRN-20260623-014] best_practice
+
+**Logged**: 2026-06-23T09:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+OT DPS1 format is an IFF-style structure: `FORM...DPS1` with 64×12-byte slice slots at offset 58 containing frame offsets, checksum at 0x33E.
+
+### Details
+- Community format verified against ot-tools-io, icaroferre/ot_utils, digichain
+- `FORM` (4 bytes) + 4-byte size + `DPS1` (4 bytes) = IFF container
+- Slice slots: 64 slots × 12 bytes each = 768 bytes starting at offset 58
+  - Each slot: 4-byte start frame (BigEndian), 4-byte end frame (BigEndian), 4-byte unknown (0xFFFFFFFF)
+- Checksum at 0x33E: uint16 BigEndian, sum of bytes 0x10 → 0x33E (exclusive)
+- Num slices at offset 0x33A: uint32 BigEndian
+- Sample offset at offset 0x2E (48): uint16 BigEndian sector offset
+- Legacy OT\x00\x00 format uses byte offsets instead of frame offsets
+
+### Metadata
+- Tags: ot, octatrack, format
+- Related Files: internal/engine/reader_ot.go, internal/engine/encoder_ot.go
+
+### Resolution
+- **Resolved**: 2026-06-23T09:00:00Z
+
+---
+
+## [LRN-20260623-015] best_practice
+
+**Logged**: 2026-06-23T10:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+D2PST (Digitakt II preset) has no separate TLV file. Slice positions are embedded in the preset binary payload as `0x00 0x22 <uint32 LE pos> 0x00 0x08` byte patterns.
+
+### Details
+- The old reader expected a .tlv companion file that doesn't exist
+- Real D2PST files embed slice data in the binary payload
+- Pattern: `00 22 xx xx xx xx 00 08` where `xx xx xx xx` is uint32 LE byte offset
+- WAV companion file referenced via `$name.manifest.xml` (or `$name.wav`)
+- Chunk-level parsing not needed — pattern scan across the payload is sufficient
+
+### Metadata
+- Tags: d2pst, digitakt, format
+- Related Files: internal/engine/reader_d2pst.go, internal/engine/encoder_d2pst.go
+
+### Resolution
+- **Resolved**: 2026-06-23T10:00:00Z
+
+---
+
+## [LRN-20260623-016] best_practice
+
+**Logged**: 2026-06-23T10:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+CAF on Linux must use `lpcm` PCM format since `afconvert` (Apple's ALAC encoder) is unavailable. Apple Loop metadata is stored via standard UUID chunks.
+
+### Details
+- CAF encoder uses `lpcm` (linear PCM), format/format-flags from CAF spec
+- Apple Loop metadata: 4 UUID chunks
+  - `AURL` beat markers: slice positions + beat number
+  - Loop info: beat count, time sig numerator/denominator, render fps
+  - Transient info: transient positions per slice
+  - Gap info: gap/fill positions
+- Detected via `init()` registration as `.caf` extension
+- 8-byte packet table required for variable-rate formats but empty for lpcm
+
+### Metadata
+- Tags: caf, apple, format
+- Related Files: internal/engine/encoder_caf.go, internal/engine/reader_caf.go
+
+### Resolution
+- **Resolved**: 2026-06-23T10:00:00Z
+
+---
+
+## [LRN-20260623-017] best_practice
+
+**Logged**: 2026-06-23T11:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+Scale factor asymmetry between PCM encoders: WAV/OP-1/PTI use `32767.0` for float→int16 conversion, AIFF/CAF use `32768.0`. Both are correct within their respective range limits.
+
+### Details
+- WAV: 32767.0 matches the standard max positive value (no clipping at +1.0)
+- AIFF: 32768.0 matches the AIFF specification which uses full [-32768, 32767] range
+- Both produce correct output for their respective formats
+- Not a bug — intentional behavior matching each format's spec
+
+### Metadata
+- Tags: pcm, scale-factor, audio
+- Related Files: internal/engine/encoder_wav.go, internal/engine/encoder_aiff.go, internal/engine/encoder_caf.go, internal/engine/encoder_pti.go
+
+---
+
+## [LRN-20260623-018] best_practice
+
+**Logged**: 2026-06-23T12:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+`samples/` directory at project root should be used for real-world test files with test helpers falling back when `testdata/` files are absent.
+
+### Details
+- Test helpers now search `testdata/` first, then `../samples/` (relative to `tests/`)
+- Covers: XRNI, ADV, ADG, D2PST, OT
+- `findTestOT()` and `findTestD2PST()` look only in `samples/` (no testdata copies)
+- New tests added for real files: `TestD2PSTReader_RealFile`, `TestOTReader_RealSampleFile`
+
+### Metadata
+- Tags: testing, samples
+- Related Files: tests/reader_test.go
+
+### Resolution
+- **Resolved**: 2026-06-23T12:00:00Z
+
+---
+
+## [LRN-20260623-019] best_practice
+
+**Logged**: 2026-06-23T12:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+When readers handle both encoder and legacy formats, dispatch on magic bytes at `Read()` time (not `Probe()`). Both formats must pass `Probe()` with acceptable sample rate/channels metadata.
+
+### Details
+- PTI: `TI\x01` (encoder) vs `PTI\x00` (legacy)
+  - Encoder format verified by jaap3/pti-file-format + pti-tools
+  - Legacy format has zero community references but existing files may exist
+- OT: `FORM...DPS1` (encoder) vs `OT\x00\x00` (legacy)
+  - Encoder format verified by ot-tools-io, ot_utils, digichain
+  - Legacy format has zero community references
+- Both readers return full descriptive errors on invalid content within each path
+- Bounds checking: slice slot count, checksum verification for DPS1, ratio table bounds for TI
+
+### Metadata
+- Tags: readers, format-detection
+- Related Files: internal/engine/reader_pti.go, internal/engine/reader_ot.go
+
+### Resolution
+- **Resolved**: 2026-06-23T12:00:00Z
+
+---
+
+## [LRN-20260623-020] best_practice
+
+**Logged**: 2026-06-23T12:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+Simpler encoder SlicingRegions value must be 2 (start + end per part), not `len(slices)`. The Ableton `.adv` format expects a `<SlicingRegions>Value>2</Value>` for each simplex slice region.
+
+### Details
+- Bug: `SlicingRegions>Value>` was set to `len(slices)` (e.g., 16)
+- Fix: set to `2` — each part has exactly 2 regions (slice start + slice end)
+- Verified against Ableton Live's own .adv export
+
+### Metadata
+- Tags: simpler, ableton, adv
+- Related Files: internal/engine/encoder_simpler.go
+
+### Resolution
+- **Resolved**: 2026-06-23T12:00:00Z
+- **Notes**: Impacted `TestSimplerReader_Basic` which was reading back the ADV file and comparing slice count.
+
+---
+
+## [LRN-20260623-021] best_practice
+
+**Logged**: 2026-06-23T12:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+OT encoder writes 24-bit audio even when BitDepth=16, because OT hardware expects 24-bit resolution internally. BitDepth field is set to 24 unconditionally.
+
+### Details
+- OT hardware: 24-bit DAC, 16-bit input gets padded internally
+- For best quality: always write 24-bit PCM in the companion WAV
+- `cfg.BitDepth` is set to 24 in the OT encoder regardless of user input
+
+### Metadata
+- Tags: ot, octatrack, bitdepth
+- Related Files: internal/engine/encoder_ot.go
+
+### Resolution
+- **Resolved**: 2026-06-23T12:00:00Z
+

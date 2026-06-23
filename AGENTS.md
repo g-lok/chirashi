@@ -33,6 +33,18 @@ chirashi is a Go + Zig CLI for converting between sliced instrument formats. The
 - When `-o` is set WITH `-l`: treat the path as a base name pattern, append chunk suffixes (_01, _02, ...)
 - `cmd/root.go` restricts `-o` to single-input mode
 
+### Format-specific constraints
+- **AIFF MARK**: Pascal strings (1-byte length prefix), padded to even boundary per IFF spec
+- **AIFF sample rate**: 80-bit extended float with `ldexp(mantissa, exponent-16383-63)` formula
+- **CAF**: Linux uses `lpcm` PCM (no afconvert), metadata via standard UUID chunks
+- **D2PST**: slice positions embedded in binary payload as `00 22 <uint32 LE pos> 00 08` patterns (no TLV file)
+- **PTI readers**: dual-format dispatch — `TI\x01` (encoder, 280–375 ratio table) and `PTI\x00` (legacy)
+- **OT readers**: dual-format dispatch — `FORM...DPS1` (encoder, IFF structure, checksum at 0x33E) and `OT\x00\x00` (legacy)
+- **PTI limit**: hardware max 48 slices, runner auto-splits via groupSlices
+- **OT bit depth**: encoder forces 24-bit (OT hardware expects 24-bit internally)
+- **Scale factor**: WAV/OP-1/PTI use 32767.0; AIFF/CAF use 32768.0 (both correct per spec)
+- **Simpler ADV**: SlicingRegions value is always 2 (start+end per part)
+
 ## Build system
 
 ```bash
@@ -54,6 +66,8 @@ The go_engine.a archive contains Go code only. The Zig code is linked separately
 - `tests/encoder_format_test.go` — tests encoders with the binary
 - `tests/reader_test.go` — tests readers in-process (no binary needed)
 - `tests/processor_test.go` — slice processing unit tests
+- `samples/` — real-world test files fallback when `testdata/` missing
+- Test helpers (`findTestXRNI`, `findTestSimpler`, `findTestDrumRack`) search `testdata/` first, then `samples/`
 
 Run with `CGO_ENABLED=0` to avoid Zig linker issues. Integration tests skip if the binary isn't found.
 

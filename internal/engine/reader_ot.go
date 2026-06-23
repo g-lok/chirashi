@@ -11,13 +11,17 @@ import (
 type OTReader struct{}
 
 func (r *OTReader) Probe(data []byte) (*RexMetadata, error) {
-	if len(data) < 4 {
-		return nil, fmt.Errorf("ot: too short")
+	if len(data) < 8 {
+		return nil, fmt.Errorf("ot: too short (%d bytes)", len(data))
 	}
-	if string(data[:4]) != "OT\x00\x00" {
-		return nil, fmt.Errorf("ot: invalid magic")
+	switch {
+	case len(data) >= 12 && string(data[:4]) == "FORM" && string(data[8:12]) == "DPS1":
+		return &RexMetadata{SampleRate: 44100, Channels: 2}, nil
+	case string(data[:4]) == "OT\x00\x00":
+		return &RexMetadata{SampleRate: 44100, Channels: 2}, nil
+	default:
+		return nil, fmt.Errorf("ot: unknown magic %02x %02x %02x %02x", data[0], data[1], data[2], data[3])
 	}
-	return &RexMetadata{SampleRate: 44100, Channels: 2}, nil
 }
 
 func (r *OTReader) SupportedExtensions() []string {
@@ -26,21 +30,161 @@ func (r *OTReader) SupportedExtensions() []string {
 
 func (r *OTReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(data) < 8 {
-		return nil, fmt.Errorf("ot: sidecar too short")
+		return nil, fmt.Errorf("ot: sidecar too short (%d bytes)", len(data))
 	}
-	if string(data[:4]) != "OT\x00\x00" {
-		return nil, fmt.Errorf("ot: invalid sidecar magic")
+
+	magic := ""
+	if len(data) >= 12 && string(data[:4]) == "FORM" && string(data[8:12]) == "DPS1" {
+		magic = "FORM DPS1"
+	} else if string(data[:4]) == "OT\x00\x00" {
+		magic = "OT"
+	} else {
+		return nil, fmt.Errorf("ot: unknown magic %02x %02x %02x %02x — expected FORM/DPS1 or OT\\x00\\x00", data[0], data[1], data[2], data[3])
 	}
-	return nil, fmt.Errorf("ot: companion WAV required — provide .ot + .wav together")
+	return nil, fmt.Errorf("ot (%s): companion WAV required — provide .ot + .wav together", magic)
 }
 
-// ReadOTWithWAV reads an OT sidecar with companion WAV data already loaded.
 func ReadOTWithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(otData) < 8 {
-		return nil, fmt.Errorf("ot: sidecar too short")
+		return nil, fmt.Errorf("ot: sidecar too short (%d bytes)", len(otData))
+	}
+
+	switch {
+	case len(otData) >= 12 && string(otData[:4]) == "FORM" && string(otData[8:12]) == "DPS1":
+		return readOTDPS1WithWAV(otData, wavData, targetSampleRate)
+	case string(otData[:4]) == "OT\x00\x00":
+		return readOTLegacyWithWAV(otData, wavData, targetSampleRate)
+	default:
+		return nil, fmt.Errorf("ot: unknown magic %02x %02x %02x %02x — expected FORM/DPS1 or OT\\x00\\x00", otData[0], otData[1], otData[2], otData[3])
+	}
+}
+
+func readOTDPS1WithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceExtraction, error) {
+	const expectedSize = 0x340
+	if len(otData) < expectedSize {
+		return nil, fmt.Errorf("ot (FORM DPS1): file too short (%d bytes, need %d)", len(otData), expectedSize)
+	}
+
+	if string(otData[:4]) != "FORM" {
+		return nil, fmt.Errorf("ot (FORM DPS1): invalid magic %02x %02x %02x %02x", otData[0], otData[1], otData[2], otData[3])
+	}
+	if string(otData[8:12]) != "DPS1" {
+		return nil, fmt.Errorf("ot (FORM DPS1): expected DPS1 form type, got %q", string(otData[8:12]))
+	}
+	if string(otData[12:16]) != "SMPA" {
+		return nil, fmt.Errorf("ot (FORM DPS1): expected SMPA chunk, got %q", string(otData[12:16]))
+	}
+
+	chkOff := 0x33E
+	wantCS := binary.BigEndian.Uint16(otData[chkOff : chkOff+2])
+	var calcCS uint16
+	for i := 0x10; i < chkOff; i++ {
+		calcCS += uint16(otData[i])
+	}
+	if wantCS != calcCS {
+		return nil, fmt.Errorf("ot (FORM DPS1): checksum mismatch: file=%04x, calculated=%04x", wantCS, calcCS)
+	}
+
+	numSliceSlots := 64
+	type slot struct {
+		start uint32
+		end   uint32
+		loop  uint32
+	}
+	var activeSlots []slot
+	for i := 0; i < numSliceSlots; i++ {
+		slotOff := 58 + i*12
+		if slotOff+12 > len(otData) {
+			break
+		}
+		s := slot{
+			start: binary.BigEndian.Uint32(otData[slotOff : slotOff+4]),
+			end:   binary.BigEndian.Uint32(otData[slotOff+4 : slotOff+8]),
+			loop:  binary.BigEndian.Uint32(otData[slotOff+8 : slotOff+12]),
+		}
+		if s.start == 0 && s.end == 0 {
+			continue
+		}
+		if s.end <= s.start {
+			continue
+		}
+		activeSlots = append(activeSlots, s)
+	}
+
+	if len(activeSlots) == 0 {
+		return nil, fmt.Errorf("ot (FORM DPS1): no valid slice slots found")
+	}
+
+	sampleRate, channels, bitDepth, err := readWAVFullFmt(wavData)
+	if err != nil {
+		return nil, fmt.Errorf("ot (FORM DPS1): companion WAV parse: %w", err)
+	}
+
+	pcmRaw, err := readWAVData(wavData)
+	if err != nil {
+		return nil, fmt.Errorf("ot (FORM DPS1): companion WAV data: %w", err)
+	}
+
+	pcm, err := decodeWAVSamples(pcmRaw, bitDepth)
+	if err != nil {
+		return nil, fmt.Errorf("ot (FORM DPS1): companion WAV decode: %w", err)
+	}
+
+	wavTotalFrames := len(pcm) / channels
+
+	meta := RexMetadata{
+		SampleRate: sampleRate,
+		Channels:   channels,
+		BitDepth:   bitDepth,
+	}
+
+	var slices []SliceExtraction
+	for i, s := range activeSlots {
+		startFrame := int(s.start)
+		endFrame := int(s.end)
+		if endFrame > wavTotalFrames {
+			endFrame = wavTotalFrames
+		}
+		if startFrame >= wavTotalFrames || endFrame <= startFrame {
+			continue
+		}
+		fc := endFrame - startFrame
+		if fc <= 0 {
+			continue
+		}
+
+		sp := make([]float32, fc*channels)
+		copy(sp, pcm[startFrame*channels:endFrame*channels])
+
+		slices = append(slices, SliceExtraction{
+			Metadata:    meta,
+			CuePoints:   []WavCueMarker{{SliceID: i, Position: 0, Label: fmt.Sprintf("Slice %02d", i+1)}},
+			Interleaved: sp,
+			TotalFrames: fc,
+		})
+	}
+
+	if len(slices) == 0 {
+		cues := []WavCueMarker{{SliceID: 0, Position: 0, Label: "Slice 01"}}
+		slices = []SliceExtraction{
+			{
+				Metadata:    meta,
+				CuePoints:   cues,
+				Interleaved: pcm,
+				TotalFrames: wavTotalFrames,
+			},
+		}
+	}
+
+	return slices, nil
+}
+
+func readOTLegacyWithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceExtraction, error) {
+	if len(otData) < 8 {
+		return nil, fmt.Errorf("ot (legacy format): sidecar too short (%d bytes)", len(otData))
 	}
 	if string(otData[:4]) != "OT\x00\x00" {
-		return nil, fmt.Errorf("ot: invalid sidecar magic")
+		return nil, fmt.Errorf("ot (legacy format): invalid magic")
 	}
 
 	sliceCount := int(binary.BigEndian.Uint16(otData[6:8]))
@@ -64,17 +208,17 @@ func ReadOTWithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceExtract
 
 	sampleRate, channels, bitDepth, err := readWAVFullFmt(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("ot: companion WAV parse: %w", err)
+		return nil, fmt.Errorf("ot (legacy format): companion WAV parse: %w", err)
 	}
 
 	pcmRaw, err := readWAVData(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("ot: companion WAV data: %w", err)
+		return nil, fmt.Errorf("ot (legacy format): companion WAV data: %w", err)
 	}
 
 	pcm, err := decodeWAVSamples(pcmRaw, bitDepth)
 	if err != nil {
-		return nil, fmt.Errorf("ot: companion WAV decode: %w", err)
+		return nil, fmt.Errorf("ot (legacy format): companion WAV decode: %w", err)
 	}
 
 	totalFrames := len(pcm) / channels
@@ -86,7 +230,7 @@ func ReadOTWithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceExtract
 		BitDepth:   bitDepth,
 	}
 
-	slices := make([]SliceExtraction, 0, sliceCount)
+	var slices []SliceExtraction
 	for i := 0; i < sliceCount; i++ {
 		startByte := int(startBytes[i])
 		endByte := int(endBytes[i])

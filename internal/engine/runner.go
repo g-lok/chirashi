@@ -18,13 +18,15 @@ type deviceSpec struct {
 
 var deviceMaxSlices = map[string]int{
 	"wav":     0, // unlimited
-	"pti":     0, // single instrument, unlimited slices via playback modes
+	"pti":     48,
 	"ot":      64,
 	"aif":     0,
+	"aiff":    0,
 	"aif-op1": 24,
+	"caf":     0,
 	"xy":      24,
 	"el":      64,
-	"d2pst":   64,
+	"dt2pst":  64,
 	"xrni":    128,
 	"adv":     0,
 	"als":     0,
@@ -188,14 +190,14 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			if err := ForceOTSpec(&chunks[i]); err != nil {
 				return err
 			}
-		case "aif", "aif-op1":
+		case "aif", "aiff", "aif-op1", "caf":
 			if err := Force44100Spec(&chunks[i]); err != nil {
 				return err
 			}
-		case "d2pst":
-			if err := Force48kSpec(&chunks[i]); err != nil {
-				return err
-			}
+	case "dt2pst":
+		if err := Force48kSpec(&chunks[i]); err != nil {
+			return err
+		}
 		}
 	}
 
@@ -305,6 +307,19 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		defer f.Close()
 		return EncodeAIFF(f, extraction)
 
+	case "aiff":
+		path := basePath + ".aiff"
+		outDir := filepath.Dir(path)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return EncodeAIFF(f, extraction)
+
 	case "aif-op1":
 		path := basePath + ".aif"
 		outDir := filepath.Dir(path)
@@ -317,6 +332,19 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		}
 		defer f.Close()
 		return EncodeOP1AIF(f, extraction)
+
+	case "caf":
+		path := basePath + ".caf"
+		outDir := filepath.Dir(path)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return EncodeCAF(f, extraction)
 
 	case "xy":
 		path := basePath + ".preset.zip"
@@ -355,7 +383,7 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		defer ft.Close()
 		return EncodeEL(ft, extraction)
 
-	case "d2pst":
+	case "dt2pst":
 		path := basePath + ".dt2pst"
 		outDir := filepath.Dir(path)
 		if outDir != "." && outDir != "" {
@@ -383,6 +411,9 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		name := filepath.Base(basePath)
 		return EncodeXRNI(f, extraction, name)
 
+	case "simpler":
+		cfg.Format = "adv"
+		fallthrough
 	case "adv", "als":
 		isALS := cfg.Format == "als"
 
@@ -475,9 +506,9 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 
 func fileNameLimit(format string) int {
 	switch format {
-	case "d2pst":
+	case "dt2pst":
 		return 12
-	case "aif", "aif-op1":
+	case "aif", "aiff", "aif-op1":
 		return 8
 	case "pti", "xrni":
 		return 31
@@ -511,7 +542,7 @@ func splitSuffix(idx, totalFiles int, format string, _ int) string {
 		return ""
 	}
 	switch format {
-	case "d2pst", "aif-op1":
+	case "dt2pst", "aif-op1":
 		return fmt.Sprintf("_%d", idx+1)
 	default:
 		return fmt.Sprintf("_%02d", idx+1)
@@ -680,7 +711,7 @@ func buildSingleOutput(slices []SliceExtraction) []SliceExtraction {
 	}
 }
 
-var inputExtensions = []string{".rex", ".rx2", ".rcy", ".xrni", ".als", ".adv", ".adg", ".wav", ".aif", ".aiff", ".pti", ".ot", ".xy", ".d2pst"}
+var inputExtensions = []string{".rex", ".rx2", ".rcy", ".xrni", ".als", ".adv", ".adg", ".wav", ".aif", ".aiff", ".caf", ".pti", ".ot", ".xy", ".dt2pst"}
 
 func isSupportedInput(ext string) bool {
 	ext = strings.ToLower(ext)

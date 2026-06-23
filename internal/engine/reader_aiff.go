@@ -158,9 +158,9 @@ func readAIFFFullComm(data []byte) (sampleRate, channels, bitDepth int, err erro
 			channels = int(binary.BigEndian.Uint16(data[pos+8 : pos+10]))
 			_ = int(binary.BigEndian.Uint32(data[pos+10 : pos+14])) // frameCount
 			bitDepth = int(binary.BigEndian.Uint16(data[pos+14 : pos+16]))
-			rateBits := binary.BigEndian.Uint16(data[pos+16 : pos+18])
-			rateFrac := binary.BigEndian.Uint64(data[pos+18 : pos+26])
-			sampleRate = int(float64(rateBits) + float64(rateFrac)/math.Pow(2, 64))
+			exp := int(binary.BigEndian.Uint16(data[pos+16 : pos+18]))
+			mant := binary.BigEndian.Uint64(data[pos+18 : pos+26])
+			sampleRate = int(math.Ldexp(float64(mant), exp-16383-63))
 			if sampleRate <= 0 {
 				sampleRate = 44100
 			}
@@ -227,15 +227,12 @@ func readAIFFMarks(data []byte) []aiffMark {
 				markID := int(binary.BigEndian.Uint16(data[markPos : markPos+2]))
 				markPosition := int(binary.BigEndian.Uint32(data[markPos+2 : markPos+6]))
 				nameLen := int(data[markPos+6])
-				if nameLen%2 == 1 {
-					nameLen++
-				}
-				if markPos+7+nameLen > pos+8+chunkSize {
+				if nameLen < 0 || markPos+7+nameLen > pos+8+chunkSize {
 					break
 				}
 				name := fmt.Sprintf("Mark %d", markID)
-				if nameLen > 1 {
-					name = string(data[markPos+7 : markPos+7+nameLen-1])
+				if nameLen > 0 {
+					name = string(data[markPos+7 : markPos+7+nameLen])
 				}
 
 				marks = append(marks, aiffMark{
@@ -243,11 +240,12 @@ func readAIFFMarks(data []byte) []aiffMark {
 					Position: markPosition,
 					Label:    name,
 				})
-				if nameLen > 0 {
-					markPos += 7 + nameLen
-				} else {
-					markPos += 7
+				pascalFieldLen := 1 + nameLen
+				if pascalFieldLen%2 == 1 {
+					pascalFieldLen++
 				}
+				entrySize := 2 + 4 + pascalFieldLen
+				markPos += entrySize
 			}
 			return marks
 		}
