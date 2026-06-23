@@ -58,9 +58,9 @@ pub const REXCreateCallback = *const fn (REX_int32_t, ?*anyopaque) callconv(.c) 
 pub extern fn REXInitializeDLL() REXError;
 
 // REXInitializeDLL_DirPath signature differs by OS:
-//   Windows: const wchar_t* (u16)
-//   Mac:     const char* UTF8 (u8)
-pub extern fn REXInitializeDLL_DirPath(iDirPath: [*:0]const u16) REXError;
+//   Windows: const wchar_t* (u16, null-terminated C string)
+//   Mac:     const char* UTF8 (u8, null-terminated C string)
+pub extern fn REXInitializeDLL_DirPath(iDirPath: [*]const u16) REXError;
 pub extern fn REXUninitializeDLL() void;
 pub extern fn REXCreate(handle: *REXHandle, buffer: [*]const u8, size: REX_int32_t, callbackFunc: ?REXCreateCallback, userData: ?*anyopaque) REXError;
 pub extern fn REXDelete(handle: *REXHandle) void;
