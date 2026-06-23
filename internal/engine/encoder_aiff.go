@@ -33,9 +33,22 @@ func EncodeAIFF(w io.Writer, extraction *SliceExtraction) error {
 	markSize := uint32(0)
 	numMarkers := len(extraction.CuePoints)
 	if numMarkers > 0 {
-		markSize = uint32(2 + numMarkers*8)
-		for range extraction.CuePoints {
-			markSize += 2
+		markSize = 2 // numMarks uint16
+		for _, cp := range extraction.CuePoints {
+			label := cp.Label
+			if label == "" {
+				label = "X"
+			}
+			nameLen := len(label)
+			if nameLen > 255 {
+				nameLen = 255
+			}
+			pascalLen := 1 + nameLen
+			entrySize := 2 + 4 + pascalLen // ID + Position + Pascal string
+			if pascalLen%2 == 1 {
+				entrySize++ // pad to even
+			}
+			markSize += uint32(entrySize)
 		}
 	}
 
@@ -96,11 +109,16 @@ func EncodeAIFF(w io.Writer, extraction *SliceExtraction) error {
 			if len(labelBytes) > 255 {
 				labelBytes = labelBytes[:255]
 			}
+			if _, err := w.Write([]byte{byte(len(labelBytes))}); err != nil {
+				return err
+			}
 			if _, err := w.Write(labelBytes); err != nil {
 				return err
 			}
-			if _, err := w.Write([]byte{0}); err != nil {
-				return err
+			if len(labelBytes)%2 == 0 {
+				if _, err := w.Write([]byte{0}); err != nil {
+					return err
+				}
 			}
 		}
 	}

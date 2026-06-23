@@ -99,7 +99,7 @@ func buildSimplerXML(extraction *SliceExtraction, sampleRelPath string, als bool
 			partFrames = len(s.Interleaved) / max(1, channels)
 		}
 
-		buf.WriteString(fmt.Sprintf(`
+			buf.WriteString(fmt.Sprintf(`
             <MultiSamplePart HasImportedSlicePoints="true">
               <Name>
                 <Value>%s</Value>
@@ -120,21 +120,20 @@ func buildSimplerXML(extraction *SliceExtraction, sampleRelPath string, als bool
                 <Value>4</Value>
               </SlicingBeatGrid>
               <SlicingRegions>
-                <Value>%d</Value>
+                <Value>2</Value>
               </SlicingRegions>
               <InitialSlicePointsFromOnsets>
                 <SlicePoint TimeInSeconds="%.6f" Rank="0"/>
                 <SlicePoint TimeInSeconds="%.6f" Rank="0"/>
               </InitialSlicePointsFromOnsets>
             </MultiSamplePart>`,
-			escapeXML(label),
-			escapeXML(sampleRelPath),
-			escapeXML(sampleRelPath),
-			partFrames,
-			sampleRate,
-			len(slices),
-			startTime,
-			endTime))
+				escapeXML(label),
+				escapeXML(sampleRelPath),
+				escapeXML(sampleRelPath),
+				partFrames,
+				sampleRate,
+				startTime,
+				endTime))
 	}
 
 	buf.WriteString(`

@@ -412,9 +412,9 @@ func decodeAIFFPCM(data []byte) ([]float32, int, int, error) {
 			channels = int(binary.BigEndian.Uint16(chunkData[0:2]))
 			frameCount := int(binary.BigEndian.Uint32(chunkData[2:6]))
 			bitDepth = int(binary.BigEndian.Uint16(chunkData[6:8]))
-			rateBits := binary.BigEndian.Uint16(chunkData[8:10])
-			rateFrac := binary.BigEndian.Uint64(chunkData[10:18])
-			sampleRate = int(float64(rateBits) + float64(rateFrac)/math.Pow(2, 64))
+			exp := int(binary.BigEndian.Uint16(chunkData[8:10]))
+			mant := binary.BigEndian.Uint64(chunkData[10:18])
+			sampleRate = int(math.Ldexp(float64(mant), exp-16383-63))
 			_ = frameCount
 		case "SSND":
 			ssndOffset = int(binary.BigEndian.Uint32(chunkData[0:4]))

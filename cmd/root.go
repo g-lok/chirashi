@@ -150,7 +150,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&normalizeSplits, "normalize-splits", false, "Balance slices evenly across splits")
 	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Suppress progress output")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Debug output (Zig struct diagnostics)")
-	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "wav", "Output format: wav, pti, ot, aif, aif-op1, xy, el, d2pst, xrni, adv, als, adg")
+	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "wav", "Output format: wav, pti, ot, aif, aiff, aif-op1, caf, xy, el, dt2pst, xrni, adv, als, adg")
 	rootCmd.Flags().BoolVarP(&noSlices, "no-slices", "n", false, "Ignore REX cue points, render plain unsliced output")
 	rootCmd.Flags().StringVar(&monoMode, "mono-mode", "sum", "Mono downmix strategy: sum, left, right, difference, dual-detect")
 	rootCmd.Flags().StringVar(&libraryPath, "library-path", "", "Ableton User Library path for sample resolution")

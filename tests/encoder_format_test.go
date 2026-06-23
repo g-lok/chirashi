@@ -309,7 +309,7 @@ func TestFormat_FLAG_DT2(t *testing.T) {
 
 	dir := t.TempDir()
 	output, err := runChirashi(t,
-		"--format", "d2pst",
+		"--format", "dt2pst",
 		"--output-dir", dir,
 		rexFile,
 	)

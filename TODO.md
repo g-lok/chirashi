@@ -15,12 +15,14 @@
 - [ ] Add EXS24 output format
 - [ ] Sample rate auto-detection from input file
 - [ ] Multi-channel output (>2 channels)
+- [ ] D2PST companion WAV lookup via manifest.xml (currently requires matching
+      filename without extension — manifest.xml may specify a different WAV path)
 
 ## Tooling
 
 - [ ] `mise run graphify` task failing (needs Gemini API key for semantic extraction)
 - [ ] Add a `lint` task (golangci-lint, zig fmt check)
-- [ ] Add a `release` task for cutting tags
+- [ ] Add a `release` task for cutting tags (for v0.3.0 and beyond)
 
 ## Documentation
 
@@ -30,6 +32,19 @@
 
 ## Testing
 
+- [x] samples/ directory with real-world test files (XRNI, D2PST, ADV, ADG, OT)
+- [x] Test helpers fallback to samples/ when testdata/ missing
 - [ ] CI cache strategy for test data files
 - [ ] Add fuzz tests for format parsers
 - [ ] Performance benchmarks (vs. original rexconverter)
+- [ ] Add more real-world sample files as they become available
+
+## v0.3.0 Completed ✓
+
+Out of scope for this release but captured for future:
+
+- [ ] AIFF 80-bit float write support (for non-44100 sample rates, encoder writes
+      44100 directly; correct extended float encoding would add complexity)
+- [ ] CAF ALAC encoding (requires macOS afconvert or external encoder)
+- [ ] OT companion WAV generation in reader (currently returns error requiring
+      manual WAV extraction)
