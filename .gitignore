@@ -10,6 +10,8 @@ go_engine.h
 *.o
 *.a
 *.h
+# Allow REX SDK header (needed for REX.c to compile on Windows)
+!internal/engine/REX.h
 
 # Python / Poetry
 .venv/
