@@ -1,0 +1,167 @@
+# -------------------------------------------------------------------
+# CI — chirashi
+# -------------------------------------------------------------------
+# Runs on every push/PR to main.  Builds the binary and runs the full
+# Go test suite.  The REX SDK is proprietary — see README section
+# "Setting up the REX SDK" for how to create the required secrets.
+#
+# ── Secrets ───────────────────────────────────────────────────────
+#
+#   REX_SDK_PASSWORD  — GPG symmetric passphrase used to decrypt
+#                       committed .tar.gz.gpg SDK files on cache miss
+#
+#   How to create and configure it (and encrypt the SDKs):
+#   Refer to PRIVATE.md in the parent directory for automated packaging
+#   and secret upload instructions.
+#
+# ── Caching ───────────────────────────────────────────────────────
+# Go module cache and Zig cache are saved/restored per branch to
+# prevent cache-poisoning across PRs.
+# -------------------------------------------------------------------
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# mise uses default data dir (~/.local/share/mise) on CI runners
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      # ── Checkout ────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # needed for `git describe` in version string
+
+      # ── Install mise (toolchain: Go + Zig) ──────────────────────
+      - name: Install mise
+        run: |
+          curl -sSL https://mise.run | sh
+          echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
+          mise install
+        shell: bash
+
+      # ── Import GPG key for SDK decryption ────────────────────────
+      - name: Import GPG signing key
+        run: |
+          echo "${{ secrets.GPG_SIGNING_KEY }}" | gpg --import --batch
+        shell: bash
+
+      # ── Restore REX SDK (macOS framework) ───────────────────────
+      - name: Restore REX SDK from cache (macOS)
+        id: cache-rex-macos
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            /tmp/rexlibs/REXSDK_Mac_1.9.2
+          key: rex-sdk-macos-${{ hashFiles('.github/workflows/ci.yml') }}
+
+      - name: Decrypt REX SDK macOS secret
+        if: steps.cache-rex-macos.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/rexlibs/REXSDK_Mac_1.9.2/Mac/Deployment
+          gpg --decrypt --batch \
+            --output /tmp/rex-sdk-macos.tar.gz .github/workflows/secrets/rex-sdk-macos.tar.gz.gpg
+          tar xzf /tmp/rex-sdk-macos.tar.gz \
+            -C /tmp/rexlibs/REXSDK_Mac_1.9.2/Mac/Deployment
+          # Verify framework was extracted
+          ls -ld "/tmp/rexlibs/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework" >/dev/null
+          rm -f /tmp/rex-sdk-macos.tar.gz
+        shell: bash
+
+      # ── Cache Go modules ────────────────────────────────────────
+      - name: Cache Go modules
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/Library/Caches/go
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # ── Cache Zig artifacts ─────────────────────────────────────
+      - name: Cache Zig global cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.cache/zig
+            ~/Library/Caches/zig
+          key: ${{ runner.os }}-zig-${{ hashFiles('**/build.zig', '**/*.zig') }}
+          restore-keys: |
+            ${{ runner.os }}-zig-
+
+      # ── Show tool versions ──────────────────────────────────────
+      - name: Show tool versions
+        run: |
+          go version
+          zig version
+          echo "mise: $(mise --version 2>/dev/null || true)"
+        shell: bash
+
+      # ── Build ───────────────────────────────────────────────────
+      - name: Build
+        run: |
+          # Clear stale Zig translate-c cache to avoid CacheCheckFailed
+          rm -rf ~/Library/Caches/zig ~/.cache/zig .zig-cache
+          mise run build
+        shell: bash
+        env:
+          CGO_LDFLAGS_ALLOW: "-Wl,-rpath,@executable_path"
+
+      # ── Test ────────────────────────────────────────────────────
+      # CGO_ENABLED=0: tests import internal/engine which has CGo bridge.go.
+      # Without Zig object files available to the Go linker, CGo linking
+      # fails. The stubs (bridge_stubs.go) are used instead — reader tests
+      # don't need CGo, and integration tests use the pre-built binary.
+      - name: Run tests
+        run: go test ./tests/... -v
+        shell: bash
+        env:
+          CGO_ENABLED: "0"
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Install mise
+        run: |
+          curl -sSL https://mise.run | sh
+          echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
+          mise install
+
+      - name: Show tool versions
+        run: go version
+
+      - name: Cache Go modules
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build Linux binaries (amd64 + arm64 + arm)
+        run: |
+          VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
+          LDFLAGS="-X github.com/g-lok/chirashi/cmd.version=$VERSION"
+          mkdir -p build
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="$LDFLAGS" -o build/chirashi-linux-amd64 main_linux.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="$LDFLAGS" -o build/chirashi-linux-arm64 main_linux.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="$LDFLAGS" -o build/chirashi-linux-arm main_linux.go
+
+      - name: Test (non-REX tests only)
+        run: go test ./tests/... -v
+        shell: bash
+        env:
+          CGO_ENABLED: "0"
