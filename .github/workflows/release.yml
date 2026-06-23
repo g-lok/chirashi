@@ -140,29 +140,71 @@ jobs:
       - name: Import GPG signing key
         run: |
           echo "${{ secrets.GPG_SIGNING_KEY }}" | gpg --import --batch
-        shell: bash
+          # confirm the key was imported
+          gpg --list-keys --batch 2>/dev/null | head -5
 
-      # ── Decrypt and Restore REX SDK macOS framework ─────────────
-      # Staged at $REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/…
-      # matching the path used by `mise run build-releases`.
+      # ── Restore REX SDK (macOS framework) ───────────────────────
+      # Cache avoids re-decrypting on every run (the raw tarball is
+      # large and GPG decryption takes time).  Decrypt only on cache
+      # miss.
+      - name: Restore REX SDK from cache (macOS)
+        id: cache-rex-macos
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            /tmp/rexlibs/REXSDK_Mac_1.9.2
+          key: rex-sdk-macos-release-${{ hashFiles('.github/workflows/secrets/rex-sdk-macos.tar.gz.gpg') }}
+
       - name: Decrypt REX SDK macOS
+        if: steps.cache-rex-macos.outputs.cache-hit != 'true'
         run: |
+          # Extract to a temp scratch dir, then find & move into place.
+          # This avoids double-directory nesting if the tarball itself
+          # already contains the REXSDK_Mac_1.9.2/Mac/Deployment prefix.
+          SCRATCH="$(mktemp -d)"
+          gpg --decrypt --batch \
+            --output "$SCRATCH/rex-sdk-macos.tar.gz" \
+            .github/workflows/secrets/rex-sdk-macos.tar.gz.gpg
+          tar xzf "$SCRATCH/rex-sdk-macos.tar.gz" -C "$SCRATCH"
+          FRAMEWORK="$(find "$SCRATCH" -type d -name '*.framework' | head -1)"
+          if [ -z "$FRAMEWORK" ]; then
+            echo "::error::REX Shared Library.framework not found in tarball"
+            ls -laR "$SCRATCH" | head -50
+            exit 1
+          fi
           mkdir -p "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment"
-          gpg --decrypt --batch \
-            --output /tmp/rex-sdk-macos.tar.gz .github/workflows/secrets/rex-sdk-macos.tar.gz.gpg
-          tar xzf /tmp/rex-sdk-macos.tar.gz \
-            -C "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment"
-          rm -f /tmp/rex-sdk-macos.tar.gz
+          cp -r "$FRAMEWORK" "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/"
+          ls -ld "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework"
+          rm -rf "$SCRATCH"
 
-      # ── Decrypt and Restore REX SDK Windows DLLs ────────────────
+      # ── Restore REX SDK (Windows DLLs) ──────────────────────────
+      - name: Restore REX SDK from cache (Windows)
+        id: cache-rex-win
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            /tmp/rexlibs/REXSDK_Win_1.9.2
+          key: rex-sdk-win-release-${{ hashFiles('.github/workflows/secrets/rex-sdk-windows.tar.gz.gpg') }}
+
       - name: Decrypt REX SDK Windows
+        if: steps.cache-rex-win.outputs.cache-hit != 'true'
         run: |
-          mkdir -p "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment"
+          SCRATCH="$(mktemp -d)"
           gpg --decrypt --batch \
-            --output /tmp/rex-sdk-windows.tar.gz .github/workflows/secrets/rex-sdk-windows.tar.gz.gpg
-          tar xzf /tmp/rex-sdk-windows.tar.gz \
-            -C "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment"
-          rm -f /tmp/rex-sdk-windows.tar.gz
+            --output "$SCRATCH/rex-sdk-windows.tar.gz" \
+            .github/workflows/secrets/rex-sdk-windows.tar.gz.gpg
+          tar xzf "$SCRATCH/rex-sdk-windows.tar.gz" -C "$SCRATCH"
+          DLL="$(find "$SCRATCH" -name 'REX Shared Library.dll' | head -1)"
+          if [ -z "$DLL" ]; then
+            echo "::error::REX Shared Library.dll not found in tarball"
+            ls -laR "$SCRATCH" | head -50
+            exit 1
+          fi
+          mkdir -p "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment"
+          cp "$DLL" "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/"
+          cp "$(dirname "$DLL")/REX Shared Library.lib" "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/"
+          ls -la "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/"
+          rm -rf "$SCRATCH"
 
       # ── Cache Go modules ────────────────────────────────────────
       - name: Cache Go modules
