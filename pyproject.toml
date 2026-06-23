@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "chirashi-graphify"
+version = "0.1.0"
+description = "graphify knowledge graph for chirashi"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.14"
+graphifyy = { version = "^0.8", extras = ["gemini"] }
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

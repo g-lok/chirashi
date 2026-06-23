@@ -1,0 +1,35 @@
+General License Agreement
+
+This product, is provided by Reason Studios Aktiebolag, reg. no. 556546-2206, 
+Hornsbruksgatan 23, SE-117 34 Stockholm, Sweden, ("Reason Studios") and your use thereof 
+is subject to your continued compliance with the terms and conditions included herein. 
+
+Reason Studios hereby grants to you a royalty-free license to study, amend and use this 
+product.
+Notwithstanding anything to the contrary in this license agreement, you may not use this 
+product (or parts thereof) in conjunction with any open source software, free software or 
+other software that risk creating an obligation to distribute or publish this product 
+(including any part thereof) or any software used together with this product to any 
+third party. 
+
+YOU ACKNOWLEDGE AND AGREE THAT THIS PRODUCT IS PROVIDED ON AN "AS-IS" AND "AS-AVAILABLE" 
+BASIS, WITHOUT ANY REPRESENTATION OR WARRANTY (WHETHER EXPRESS OR IMPLIED), INCLUDING, 
+BUT NOT LIMITED, ANY REPRESENTATIONS OR WARRANTIES CONCERNING AVAILABILITY, 
+NON-INFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE OR MERCHANTABILITY. IN NO EVENT SHALL 
+REASON STUDIOS (INCLUDING ITS EMPLOYEES, AGENTS, CONSULTANTS OR REPRESENTATIVES) BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY WHATSOEVER. 
+
+FOR THE AVOIDANCE OF DOUBT, YOU ARE USING THIS PRODUCT AT YOUR OWN RISK AND LIABILITY.
+
+With the exception of products distributed via Reason Studios' marketplace, this license 
+agreement and the copyright notice included herein must be distributed together with all 
+copies of any results from your use of this product .
+
+Reason Studios reserves the right to amend this agreement at any time by providing written
+notice on www.reasonstudios.com. 
+
+This agreement is governed by and construed in accordance with Swedish law. Any dispute, 
+controversy or claim in relation to this agreement shall be finally settled by Swedish 
+courts, with the district court of Stockholm as the court of first instance.
+
+© Reason Studios AB, Version 1, Updated 18 November 2019
