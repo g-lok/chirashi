@@ -75,7 +75,9 @@ Download the latest release for your platform from the [releases page](https://g
 VERSION=<latest tag>  # e.g. v0.3.0
 curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-macos.tar.gz"
 tar xzf "chirashi-$VERSION-macos.tar.gz"
-sudo mv chirashi-$VERSION-macos/chirashi /usr/local/bin/
+sudo mkdir -p /usr/local/opt
+sudo mv chirashi-$VERSION-macos /usr/local/opt/chirashi
+sudo ln -s /usr/local/opt/chirashi/chirashi /usr/local/bin/chirashi
 
 # Linux amd64 — static binary, no REX support
 curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-linux-amd64"
@@ -88,7 +90,11 @@ sudo mv chirashi-$VERSION-linux-amd64 /usr/local/bin/chirashi
 $VERSION = "<latest tag>"
 Invoke-WebRequest -Uri "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-windows.zip" -OutFile chirashi.zip
 Expand-Archive chirashi.zip -DestinationPath chirashi
-# chirashi.exe + REX Shared Library.dll in chirashi/chirashi-$VERSION-windows/
+$installDir = "$env:LOCALAPPDATA\Programs\chirashi"
+New-Item -ItemType Directory -Force -Path $installDir
+Move-Item chirashi\chirashi-*\* $installDir -Force
+$env:Path += ";$installDir"
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$installDir", "User")
 ```
 
 Verify checksums from `CHECKSUMS.txt` on the release.
