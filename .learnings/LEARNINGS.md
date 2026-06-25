@@ -925,3 +925,33 @@ CAF encoder's `writeCAFPCM()` always writes int16 samples regardless of `bitDept
 - Related Files: internal/engine/runner.go
 - Pattern-Key: runner.output.basename.truncation
 
+---
+
+## [LRN-20260624-032] workflow
+
+**Logged**: 2026-06-24T19:45:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: workflow
+
+### Summary
+Release tagging uses `~/bin/release <tag> [rev]`. Creates jj tag + pushes via `jj tag set` + `jj git push --tag`, triggers `.github/workflows/release.yml` on v* push.
+
+### Details
+- `~/bin/release` validates: tag format (`vX.Y.Z`), clean working copy, commit pushed to remote
+- Default rev: `main` (jj bookmark)
+- Creates tag: `jj tag set <tag> -r <rev>`
+- Pushes tag: `jj git push --tag <tag>`
+- Release workflow auto-triggers on tag push to origin
+- Track with: `gh run watch` from repo root
+- After artifacts built, update `../homebrew-tap` (SHA256) + `../scoop-bucket` (SHA256 + paths)
+
+### Metadata
+- Source: documentation
+- Tags: release, workflow, jj, tag, automation
+- Related Files: ~/bin/release, .github/workflows/release.yml
+- Pattern-Key: workflow.release.tag
+
+### Resolution
+- **Resolved**: 2026-06-24T19:45:00Z
+
