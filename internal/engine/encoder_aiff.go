@@ -34,10 +34,10 @@ func EncodeAIFF(w io.Writer, extraction *SliceExtraction) error {
 	numMarkers := len(extraction.CuePoints)
 	if numMarkers > 0 {
 		markSize = 2 // numMarks uint16
-		for _, cp := range extraction.CuePoints {
+		for i, cp := range extraction.CuePoints {
 			label := cp.Label
 			if label == "" {
-				label = "X"
+				label = fmt.Sprintf("S%02d", i+1)
 			}
 			nameLen := len(label)
 			if nameLen > 255 {
@@ -164,6 +164,20 @@ func EncodeAIFF(w io.Writer, extraction *SliceExtraction) error {
 			}
 			written += chunk
 		default:
+			// Fallback: write 16-bit PCM for any unsupported bit depth.
+			// Better to produce a valid AIFF than return an error.
+			for i := 0; i < chunk/int(bytesPerSample); i++ {
+				sampleIdx := frameStart*channels + i
+				val := int16(extraction.Interleaved[sampleIdx] * 32768)
+				if val > 32767 {
+					val = 32767
+				} else if val < -32768 {
+					val = -32768
+				}
+				pos := i * 2
+				buf[pos] = byte(val >> 8)
+				buf[pos+1] = byte(val)
+			}
 			written += chunk
 		}
 		if _, err := w.Write(buf[:chunk]); err != nil {

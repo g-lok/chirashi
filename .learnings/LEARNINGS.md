@@ -635,3 +635,293 @@ OT encoder writes 24-bit audio even when BitDepth=16, because OT hardware expect
 ### Resolution
 - **Resolved**: 2026-06-23T12:00:00Z
 
+---
+
+## [LRN-20260624-022] knowledge_gap
+
+**Logged**: 2026-06-24T08:00:00Z
+**Priority**: high
+**Status**: pending
+**Area**: packaging
+
+### Summary
+macOS release bundles universal binary + REX Shared Library.framework in `Frameworks/` subdirectory. Binary rpath-patched to `@executable_path/Frameworks/`.
+
+### Details
+- `mise run build-releases` (mise.toml tasks.build-releases):
+  1. Cross-compile Go → c-archive for amd64 + arm64 via `zig cc` as CC
+  2. Zig build links Go archive + rex_bindings.zig for each arch
+  3. `lipo -create` produces universal binary
+  4. `install_name_tool -change` rewrites framework rpath from `@loader_path/../Frameworks/` to `@executable_path/Frameworks/`
+  5. `build.zig` sets `headerpad_max_install_names = true` + `addRPath(b.path("Frameworks"))`
+  6. REX framework copied into `build/Frameworks/` alongside binary
+  7. Packaged as `chirashi-$VERSION-macos.tar.gz` containing `chirashi-$VERSION-macos/` dir with `chirashi` + `Frameworks/`
+  8. macOS binary ad-hoc signed in release workflow (`codesign --force --sign -`)
+- Manual install: extract tarball → `sudo mv` to `/usr/local/opt/chirashi` → `sudo ln -s` into PATH
+- Framework resolves at `@executable_path/Frameworks/REX Shared Library.framework/...`
+- `build.zig` only builds the binary; `mise run build` and `mise run build-releases` handle framework copy + rpath patching
+- `CGO_LDFLAGS_ALLOW = "-Wl,-rpath,@executable_path"` env var needed for CGo linker
+
+### Metadata
+- Source: user_feedback
+- Tags: macos, packaging, release, framework, rpath, codesign
+- Related Files: mise.toml (tasks.build-releases, tasks.build), build.zig, .github/workflows/release.yml
+- Pattern-Key: packaging.macos.framework.bundling
+
+---
+
+## [LRN-20260624-023] knowledge_gap
+
+**Logged**: 2026-06-24T08:00:00Z
+**Priority**: high
+**Status**: pending
+**Area**: packaging
+
+### Summary
+Windows release bundles `chirashi.exe` + `REX Shared Library.dll` + `.lib`. Built via Zig cross-compile with Go c-archive, packaged as ZIP.
+
+### Details
+- `mise run build-releases` builds Windows x86_64:
+  1. `CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC="zig cc -target x86_64-windows-gnu" go build -buildmode=c-archive` produces `go_engine_windows.a`
+  2. BSD ar format fix: `ar x ... && zig ar rcs ... && rm *.o` (Go produces BSD-format archives, lld-link needs GNU format)
+  3. `zig build -Dtarget=x86_64-windows-gnu` links Go archive + REX.c (dynamic loader) + rex_bindings.zig
+  4. `build.zig` adds `internal/engine/rex/REX.c` with `-DREX_WINDOWS=1 -DREX_MAC=0` flags
+- DLL + .lib copied from SDK: `$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/`
+  - `REX Shared Library.dll` — runtime dependency
+  - `REX Shared Library.lib` — import library (for dev, not needed at runtime)
+- Packaged as `chirashi-$VERSION-windows.zip` containing `chirashi-$VERSION-windows/` dir
+- Windows requires `REX_DLL_LOADER=1` (dynamically loaded via REX.c), unlike macOS direct framework linking
+- Scoop manifest installs both exe + dll, PATH to install dir
+- Manual install via PowerShell: unzip → `$env:LOCALAPPDATA\Programs\chirashi` → add to PATH
+
+### Metadata
+- Source: user_feedback
+- Tags: windows, packaging, release, dll
+- Related Files: mise.toml (tasks.build-releases), build.zig, .github/workflows/release.yml, internal/engine/rex/REX.c
+- Pattern-Key: packaging.windows.dll.bundling
+
+---
+
+## [LRN-20260624-024] knowledge_gap
+
+**Logged**: 2026-06-24T08:00:00Z
+**Priority**: high
+**Status**: pending
+**Area**: packaging
+
+### Summary
+Linux release is pure Go — no Zig, no CGo, no REX SDK. Built from `main_linux.go` with `CGO_ENABLED=0`. Three standalone binaries (amd64, arm64, armv7).
+
+### Details
+- Entry point: `main_linux.go` with `//go:build linux && !cgo` build tag
+  - Simple: imports `cmd` → calls `cmd.Execute()`
+  - No CGo imports, no `//export GoMainEntry`, no empty main()
+- macOS/Windows use `main.go` with `//go:build !linux`
+  - Imports `"C"`, defines `//export GoMainEntry`, `main()` is empty
+  - Zig binary entrypoint calls `GoMainEntry()` via c-archive
+- Linux build tasks (in mise.toml tasks.build-linux and CI):
+  - `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/chirashi-linux-amd64 main_linux.go`
+  - Same for arm64, arm (GOARM=7 for armv7)
+- Binary is pure Go, no runtime deps beyond libc — verified with `file` + `ldd`
+- Homebrew formula on Linux downloads raw binary (no .tar.gz, no Frameworks)
+
+### Metadata
+- Source: user_feedback
+- Tags: linux, packaging, release, cgo, go
+- Related Files: main_linux.go, main.go, mise.toml, .github/workflows/ci.yml, .github/workflows/release.yml
+- Pattern-Key: packaging.linux.static
+
+---
+
+## [LRN-20260624-025] knowledge_gap
+
+**Logged**: 2026-06-24T08:00:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: packaging
+
+### Summary
+Release pipeline triggered by `v*` tag. Produces 3 platform artifacts: macOS tar.gz (universal + Frameworks), Windows zip (exe + DLL), Linux binaries (amd64, arm64, arm). GPG-decrypted REX SDK from committed tarballs.
+
+### Details
+- `.github/workflows/release.yml`:
+  - `build-linux` job (ubuntu-latest): builds 3 Linux binaries, uploads to GitHub Release via `softprops/action-gh-release`
+  - `build-and-release` job (macos-latest): builds macOS universal + Windows x86_64, signs, packages, computes CHECKSUMS.txt, creates Release
+- `REX_SDK` decrypted from GPG-encrypted tarballs in `.github/workflows/secrets/`
+  - macOS: `rex-sdk-macos.tar.gz.gpg` → framework → `/tmp/rexlibs/REXSDK_Mac_1.9.2/Mac/Deployment/`
+  - Windows: `rex-sdk-windows.tar.gz.gpg` → DLL + .lib → `/tmp/rexlibs/REXSDK_Win_1.9.2/Win/x64/Deployment/`
+  - Cache layer avoids re-decrypting on every run (`actions/cache`)
+- REX SDK not decrypted on PRs from forks (no secrets access) — build uses stale cache
+- macOS binary ad-hoc signed (`codesign --force --sign -`). Not notarized yet.
+  - Commented-out notarization step in release.yml for future production signing
+- CHECKSUMS.txt computed and included in release body
+- `CGO_LDFLAGS_ALLOW: "-Wl,-rpath,@executable_path"` required for CGo rpath acceptance
+- Release body auto-generated with checksums + notes about quarantine xattr
+
+### Metadata
+- Source: user_feedback
+- Tags: release, ci, gpg, packaging, platform
+- Related Files: .github/workflows/release.yml, .github/workflows/ci.yml, .github/workflows/secrets/
+- Pattern-Key: packaging.release.pipeline
+
+---
+
+## [LRN-20260624-026] knowledge_gap
+
+**Logged**: 2026-06-24T08:00:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: packaging
+
+### Summary
+`main.go` vs `main_linux.go` build-tag split: macOS/Windows use CGo + Zig c-archive entrypoint, Linux uses pure Go. Zig calls `GoMainEntry()` export; Linux just calls `cmd.Execute()`.
+
+### Details
+- `main.go` (`//go:build !linux`):
+  - Imports `"C"` for `//export GoMainEntry`
+  - `func main()` is empty — Zig binary has its own `main()` that calls `GoMainEntry()`
+  - Zig source in `extractor.zig` calls the Go entrypoint after REX SDK init
+- `main_linux.go` (`//go:build linux && !cgo`):
+  - No CGo imports, no Zig dependency
+  - `func main() { cmd.Execute() }` directly
+  - Uses `extractor_stub.zig` (no-op stub) — but stub is never actually linked on Linux builds because `CGO_ENABLED=0` and `build.zig` step is skipped entirely
+  - The Linux build bypasses `build.zig` and `zig build` completely — just `go build main_linux.go`
+- This split is the fundamental architecture difference: macOS/Windows have a Go runtime embedded as a C-archive called from Zig; Linux is standalone Go
+
+### Metadata
+- Source: user_feedback
+- Tags: build, cgo, zig, go, architecture
+- Related Files: main.go, main_linux.go, build.zig, internal/engine/extractor.zig, internal/engine/extractor_stub.zig
+- Pattern-Key: packaging.main.split
+
+---
+
+## [LRN-20260624-027] bug
+
+**Logged**: 2026-06-24T18:30:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+OT encoder was incorrectly force to 24-bit (`-b 16` → 24 internally). OT hardware supports both 16 and 24-bit (24-bit DAC/ADC, user selects via FLEX FORMAT). Encoder should respect user's bit depth choice.
+
+### Details
+- v0.3.0 CHANGELOG claimed OT hardware "expects 24-bit internally" — wrong
+- OT manual: "Both Flex and Static machines can handle 16 or 24 bit/44.1 kHz wav/aiff files"
+- User chooses FLEX FORMAT: 16-bit or 24-bit mode in OT settings
+- 24-bit DAC/ADC is a hardware capability, not a constraint on sample files
+- Fix: revert the 24-bit forcing — `ForceOTSpec()` only forces 44.1kHz sample rate, OT `writeOutputFiles` clamps `cfg.BitRate` floor at 16, `EncodeWavContainer` uses clamped value
+
+### Metadata
+- Source: user_feedback
+- Tags: ot, bitdepth, encoder, wav, correction
+- Related Files: internal/engine/resample.go, internal/engine/runner.go, internal/engine/encoder.go
+- Pattern-Key: encoder.ot.bitdepth
+
+### Resolution
+- **Resolved**: 2026-06-24T18:30:00Z
+- **Notes**: Reverted 24-bit forcing. OT encoder respects user bit depth with floor clamp at 16.
+
+---
+
+## [LRN-20260624-028] bug
+
+**Logged**: 2026-06-24T18:30:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+AIFF MARK chunk `markSize` calculation used `"X"` (1 char) as default empty-slice label, but actual write used `"S%02d"` (3+ chars). Result: `markSize` underreported by 2 bytes per empty-label marker → IFF chunk size wrong → downstream parsers truncate data.
+
+### Details
+- `encoder_aiff.go` markSize calculation loop (line 37-52): empty labels → `"X"` (1 char), nameLen=1, pascalLen=2, entrySize=8
+- MARK write loop (line 104-114): empty labels → `fmt.Sprintf("S%02d", i+1)` (e.g. "S01"), nameLen=3, pascalLen=4, entrySize=10
+- Difference: 2 bytes per marker with empty label (common for REX/WAV input without adtl labels)
+- IFF parser reads chunk size from header → underreads MARK data → misparses SSND
+
+### Metadata
+- Source: audit
+- Tags: aiff, mark, iff, chunk-size, corruption
+- Related Files: internal/engine/encoder_aiff.go
+- Pattern-Key: encoder.aiff.mark.sizemismatch
+
+### Resolution
+- **Resolved**: 2026-06-24T18:30:00Z
+- **Notes**: Changed markSize loop from `for _, cp` to `for i, cp` and default label from `"X"` to `fmt.Sprintf("S%02d", i+1)` to match write path.
+
+---
+
+## [LRN-20260624-029] bug
+
+**Logged**: 2026-06-24T18:30:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+AIFF encoder only supports 16-bit PCM. If `extraction.Metadata.BitDepth` is 8 or 24, the `default` case in `EncodeAIFF` writes zero-byte data (no sample data). Currently mitigated by `Force44100Spec` calling `ConvertBitDepth(extraction, 16)` but latent if called directly.
+
+### Details
+- `EncodeAIFF` bitDepth switch (encoder_aiff.go:151-168):
+  - `case 16:` — correct, writes int16 samples
+  - `default:` — increments `written` by `chunk` but writes nothing. File has correct header + zeroed PCM data
+- Currently prevented by `Force44100Spec` setting bit depth to 16 in runner.go:193-196
+- But `EncodeAIFF` is exported — direct calls with non-16 bit depth produce silent corruption
+
+### Metadata
+- Source: audit
+- Tags: aiff, encoder, bitdepth, latent-bug
+- Related Files: internal/engine/encoder_aiff.go, internal/engine/resample.go
+- Pattern-Key: encoder.aiff.bitdepth.limited
+
+---
+
+## [LRN-20260624-030] bug
+
+**Logged**: 2026-06-24T18:30:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: backend
+
+### Summary
+CAF encoder's `writeCAFPCM()` always writes int16 samples regardless of `bitDepth` parameter. If metadata bitDepth were 24, the CAF desc chunk would report 24-bit but actual PCM would be 16-bit. Mitigated by `Force44100Spec` always setting bitDepth=16.
+
+### Details
+- `writeCAFPCM()` (encoder_caf.go:212-244): hardcodes `int16(interleaved[sampleIdx] * 32768)` and writes 2 bytes per sample
+- `bitDepth` parameter is used to calculate `bytesPerSample` and `blockAlign` but the actual sample type is always int16
+- If `bitDepth` were set to 24, bytesPerSample=3, blockAlign=3*channels, but samples are written as 2-byte int16 — format violation
+- Currently mitigated by `Force44100Spec` setting bitDepth=16 before CAF encoding
+
+### Metadata
+- Source: audit
+- Tags: caf, encoder, pcm, bitdepth, latent-bug
+- Related Files: internal/engine/encoder_caf.go
+- Pattern-Key: encoder.caf.pcm.bitdepth
+
+---
+
+## [LRN-20260624-031] bug
+
+**Logged**: 2026-06-24T18:30:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+`outputBaseName()` chunk truncation (`-o` + `-l`) operates on the full path, not just the filename. Long directory paths with chunking could be truncated at directory separator, producing unexpected output locations.
+
+### Details
+- `runner.go outputBaseName()` at line 560-569: when `-o` is set with `-l` (chunking), strips extension then truncates basename to fit format-specific `nameLimit`
+- `nameLimit` for dt2pst=12, aif-op1=8 (short)
+- If user passes `-o /output/dir/longname -l 64 -f dt2pst`, the path `/output/dir/longname` gets truncated to `/output/di` after nameLimit truncation
+- Directory separators in the path produce unexpected output dirs
+- Unlikely in practice (chunking + short-limit formats + long paths is rare combo)
+
+### Metadata
+- Source: audit
+- Tags: runner, output, filename, chunking
+- Related Files: internal/engine/runner.go
+- Pattern-Key: runner.output.basename.truncation
+
