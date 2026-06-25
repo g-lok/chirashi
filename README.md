@@ -12,6 +12,7 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 ## Table of Contents
 
 - [Platform support](#platform-support)
+- [Installation](#installation)
 - [Quick start](#quick-start)
 - [Flags](#flags)
 - [Supported formats](#supported-formats)
@@ -28,10 +29,9 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
   - [Teenage Engineering OP-1](#teenage-engineering-op-1)
   - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
   - [Elektron multi-sample (EL)](#elektron-multi-sample-el)
-   - [Elektron Digitakt II (DT2PST)](#elektron-digitakt-ii-dt2pst)
+  - [Elektron Digitakt II (DT2PST)](#elektron-digitakt-ii-dt2pst)
   - [REX / RX2 / RCY](#rex--rx2--rcy)
 - [Architecture](#architecture)
-- [Installation](#installation)
 - [Building from source](#building-from-source)
 - [Development](#development)
 - [CI setup (maintainers)](#ci-setup-maintainers)
@@ -46,6 +46,52 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 | Linux | ✓ | ✗ (REX SDK not available) |
 
 REX (`.rex`, `.rx2`, `.rcy`) is **input only** and requires the proprietary Reason REX SDK (macOS/Windows). All other formats work cross-platform.
+
+## Installation
+
+### macOS / Linux (Homebrew)
+
+```bash
+brew install g-lok/tap/chirashi
+```
+
+The [Homebrew formula](https://github.com/g-lok/homebrew-tap) installs a universal macOS binary (with REX Shared Library framework bundled) on macOS, or a prebuilt Linux amd64/arm64 binary on Linux. REX input is not available on Linux.
+
+### Windows (Scoop)
+
+```powershell
+scoop bucket add g-lok https://github.com/g-lok/scoop-bucket
+scoop install chirashi
+```
+
+The [Scoop manifest](https://github.com/g-lok/scoop-bucket) installs `chirashi.exe` plus the bundled `REX Shared Library.dll`.
+
+### Manual install (GitHub Releases)
+
+Download the latest release for your platform from the [releases page](https://github.com/g-lok/chirashi/releases).
+
+```bash
+# macOS — universal binary (Apple Silicon + Intel), REX framework bundled
+VERSION=<latest tag>  # e.g. v0.3.0
+curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-macos.tar.gz"
+tar xzf "chirashi-$VERSION-macos.tar.gz"
+sudo mv chirashi-$VERSION-macos/chirashi /usr/local/bin/
+
+# Linux amd64 — static binary, no REX support
+curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-linux-amd64"
+chmod +x chirashi-$VERSION-linux-amd64
+sudo mv chirashi-$VERSION-linux-amd64 /usr/local/bin/chirashi
+```
+
+```powershell
+# Windows (PowerShell)
+$VERSION = "<latest tag>"
+Invoke-WebRequest -Uri "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-windows.zip" -OutFile chirashi.zip
+Expand-Archive chirashi.zip -DestinationPath chirashi
+# chirashi.exe + REX Shared Library.dll in chirashi/chirashi-$VERSION-windows/
+```
+
+Verify checksums from `CHECKSUMS.txt` on the release.
 
 ## Quick start
 
@@ -348,25 +394,6 @@ chirashi loop.rex -f pti -o rex_kit.pti            # REX → Polyend Tracker
 - **internal/engine/extractor.zig** — Zig wrapper around the REX C API
 - **internal/engine/rex_bindings.zig** — manual extern declarations for REX SDK
 - **internal/engine/rex/REX.c** — Windows DLL loader
-
-## Installation
-
-### macOS / Linux (Homebrew)
-
-```bash
-brew install g-lok/tap/chirashi
-```
-
-The [Homebrew formula](https://github.com/g-lok/homebrew-tap) installs a universal macOS binary (with REX Shared Library framework bundled) on macOS, or a prebuilt Linux amd64/arm64 binary on Linux. REX input is not available on Linux.
-
-### Windows (Scoop)
-
-```powershell
-scoop bucket add g-lok https://github.com/g-lok/scoop-bucket
-scoop install chirashi
-```
-
-The [Scoop manifest](https://github.com/g-lok/scoop-bucket) installs `chirashi.exe` plus the bundled `REX Shared Library.dll`.
 
 ## Building from source
 
