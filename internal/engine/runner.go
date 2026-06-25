@@ -277,7 +277,11 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		if err != nil {
 			return err
 		}
-		if err := EncodeWavContainer(fw, extraction, cfg.BitRate); err != nil {
+		bitRate := cfg.BitRate
+		if bitRate > 0 && bitRate < 16 {
+			bitRate = 16
+		}
+		if err := EncodeWavContainer(fw, extraction, bitRate); err != nil {
 			fw.Close()
 			return err
 		}
@@ -563,8 +567,11 @@ func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string
 		// writeOutputFiles can add format-specific extension.
 		baseName := strings.TrimSuffix(cfg.OutputFile, filepath.Ext(cfg.OutputFile))
 		nameLimit := fileNameLimit(format)
-		if nameLimit > 0 && len(baseName)+len(suffix) > nameLimit {
-			baseName = baseName[:nameLimit-len(suffix)]
+		if nameLimit > 0 && len(filepath.Base(baseName))+len(suffix) > nameLimit {
+			dir := filepath.Dir(baseName)
+			file := filepath.Base(baseName)
+			file = file[:nameLimit-len(suffix)]
+			baseName = filepath.Join(dir, file)
 		}
 		return baseName + suffix
 	}

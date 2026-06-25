@@ -225,15 +225,36 @@ func writeCAFPCM(w io.Writer, interleaved []float32, numFrames, channels, bitDep
 		frameStart := written / blockAlign
 		for i := 0; i*bytesPerSample < chunk; i++ {
 			sampleIdx := frameStart*channels + i
-			val := int16(interleaved[sampleIdx] * 32768)
-			if val > 32767 {
-				val = 32767
-			} else if val < -32768 {
-				val = -32768
+			fSample := interleaved[sampleIdx]
+			if fSample > 1.0 {
+				fSample = 1.0
+			} else if fSample < -1.0 {
+				fSample = -1.0
 			}
-			pos := i * 2
-			buf[pos] = byte(val >> 8)
-			buf[pos+1] = byte(val)
+			pos := i * bytesPerSample
+			switch bitDepth {
+			case 8:
+				buf[pos] = byte(int(fSample*127.0) + 128)
+			case 16:
+				val := int16(fSample * 32768)
+				if val > 32767 {
+					val = 32767
+				} else if val < -32768 {
+					val = -32768
+				}
+				buf[pos] = byte(val >> 8)
+				buf[pos+1] = byte(val)
+			case 24:
+				val := int32(fSample * 8388607.0)
+				if val > 8388607 {
+					val = 8388607
+				} else if val < -8388608 {
+					val = -8388608
+				}
+				buf[pos] = byte(val >> 16)
+				buf[pos+1] = byte(val >> 8)
+				buf[pos+2] = byte(val)
+			}
 		}
 		written += chunk
 		if _, err := w.Write(buf[:chunk]); err != nil {

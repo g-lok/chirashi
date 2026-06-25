@@ -5,6 +5,23 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-06-24
+
+### Fixed
+- **OT bit depth**: `ForceOTSpec()` was incorrectly forced to 24-bit. Reverted —
+  OT supports both 16 and 24-bit via user's FLEX FORMAT setting. Encoder now
+  respects user-specified bit depth with floor clamp at 16 (8-bit → 16).
+- **AIFF MARK chunk size mismatch**: `markSize` calculation used `"X"` (1 byte)
+  as default empty-label but actual write used `"S%02d"` (3+ bytes). Chunk size
+  underreported by 2 bytes per empty-label marker → IFF data corruption.
+- **CAF encoder hardcoded 16-bit**: `writeCAFPCM()` always wrote int16 samples
+  regardless of `bitDepth` parameter. Rewritten with switch for 8/16/24-bit.
+- **AIFF encoder only 16-bit**: `default` case in bitDepth switch silently wrote
+  zero-byte PCM for 8/24-bit input. Now falls back to 16-bit.
+- **`outputBaseName` path truncation with `-o` + `-l`**: truncated full path
+  including directory separators when `nameLimit` applied. Now uses
+  `filepath.Base()` before truncation, preserving directory structure.
+
 ## [0.3.0] - 2026-06-23
 
 ### Added
