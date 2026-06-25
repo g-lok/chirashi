@@ -213,7 +213,17 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			defer wg.Done()
 
 			suffix := splitSuffix(idx, totalFiles, cfg.Format, nameLimit)
-			baseName := outputBaseName(sourcePath, cfg, suffix, cfg.Format)
+			bpmPrefix := ""
+			if cfg.BpmPrefix {
+				bpm := c.Metadata.OriginalTempo
+				if bpm == 0 {
+					bpm = c.Metadata.Tempo
+				}
+				if bpm > 0 {
+					bpmPrefix = fmt.Sprintf("%d-", int(math.Round(bpm)))
+				}
+			}
+			baseName := outputBaseName(sourcePath, cfg, suffix, cfg.Format, bpmPrefix)
 
 			if err := writeOutputFiles(baseName, &c, cfg, idx, totalFiles); err != nil {
 				errCh <- fmt.Errorf("failed encoding for %s: %w", baseName, err)
@@ -553,7 +563,7 @@ func splitSuffix(idx, totalFiles int, format string, _ int) string {
 	}
 }
 
-func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string) string {
+func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format, bpmPrefix string) string {
 	if cfg.OutputFile != "" && cfg.SliceLimit <= 0 {
 		// User explicitly specified the output path AND no chunking.
 		// Use it as-is (no sanitization, no suffix). Strip the extension;
@@ -577,7 +587,7 @@ func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string
 	}
 
 	if sourcePath == "stdin" {
-		baseName := "output"
+		baseName := bpmPrefix + "output"
 		nameLimit := fileNameLimit(format)
 		baseName = sanitizeName(baseName+suffix, nameLimit)
 		if cfg.OutputDir != "" {
@@ -589,7 +599,7 @@ func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string
 	baseName := strings.TrimSuffix(filepath.Base(sourcePath), filepath.Ext(sourcePath))
 
 	nameLimit := fileNameLimit(format)
-	suffixed := sanitizeName(baseName, nameLimit-len(suffix))
+	suffixed := bpmPrefix + sanitizeName(baseName, nameLimit-len(suffix)-len(bpmPrefix))
 	suffixed += suffix
 
 	if cfg.OutputDir != "" {

@@ -32,6 +32,7 @@ var (
 	libraryPath     string
 	inputFormat     string
 	samplePathMode  string
+	bpmPrefix       bool
 )
 
 var rootCmd = &cobra.Command{
@@ -120,6 +121,7 @@ mono downmix, and slice grouping.`,
 			LibraryPath:     libraryPath,
 			InputFormat:     inputFormat,
 			SamplePathMode:  samplePathMode,
+			BpmPrefix:       bpmPrefix,
 		}
 
 		return engine.ExecuteConversionPipeline(pipelineConfig)
@@ -156,4 +158,5 @@ func init() {
 	rootCmd.Flags().StringVar(&libraryPath, "library-path", "", "Ableton User Library path for sample resolution")
 	rootCmd.Flags().StringVar(&inputFormat, "input-format", "", "Force input format (auto-detect by extension if unset)")
 	rootCmd.Flags().StringVar(&samplePathMode, "sample-path-mode", "relative", "Sample path style in XML output: relative, absolute, library")
+	rootCmd.Flags().BoolVar(&bpmPrefix, "bpm", false, "Prepend detected BPM to output filename (e.g. 128-cool_loop.wav)")
 }
