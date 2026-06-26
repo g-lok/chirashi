@@ -5,16 +5,16 @@
 CLI tool for converting between sliced instrument formats used in hardware samplers and DAWs.
 
 - **Cross-format** — convert between any supported input/output pair
-- **REX/RX2/RCY** input via Reason SDK (macOS/Windows only)
-- **Pure Go parsers** for everything else — no external deps
-- Mono downmix, resampling, slice limiting, BPM override
+- **Pure Go** — no external dependencies, no native SDKs required
+- **REX/RX2/RCY** input via pure Go implementation
+- Mono downmix, resampling, slice limiting, BPM override, BPM filename prefix
 
 ## Table of Contents
 
-- [Platform support](#platform-support)
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Flags](#flags)
+- [BPM prefix](#bpm-prefix)
 - [Supported formats](#supported-formats)
   - [Input formats](#input-formats)
   - [Output formats](#output-formats)
@@ -23,29 +23,18 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 - [AIFF / AIFF-C](#aiff--aiff-c)
 - [CAF — Apple Loops](#caf--apple-loops)
 - [Ableton Live presets](#ableton-live-presets)
-  - [Renoise XRNI](#renoise-xrni)
-  - [Polyend Tracker (PTI)](#polyend-tracker-pti)
-  - [Elektron Octatrack (OT)](#elektron-octatrack-ot)
-  - [Teenage Engineering OP-1](#teenage-engineering-op-1)
-  - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
-  - [Elektron multi-sample (EL)](#elektron-multi-sample-el)
-  - [Elektron Digitakt II (DT2PST)](#elektron-digitakt-ii-dt2pst)
-  - [REX / RX2 / RCY](#rex--rx2--rcy)
+- [Renoise XRNI](#renoise-xrni)
+- [Polyend Tracker (PTI)](#polyend-tracker-pti)
+- [Elektron Octatrack (OT)](#elektron-octatrack-ot)
+- [Teenage Engineering OP-1](#teenage-engineering-op-1)
+- [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
+- [Elektron multi-sample (EL)](#elektron-multi-sample-el)
+- [Elektron Digitakt II (DT2PST)](#elektron-digitakt-ii-dt2pst)
+- [REX / RX2 / RCY](#rex--rx2--rcy)
 - [Architecture](#architecture)
 - [Building from source](#building-from-source)
 - [Development](#development)
-- [CI setup (maintainers)](#ci-setup-maintainers)
 - [License](#license)
-
-## Platform support
-
-| Platform | All formats | REX input |
-|----------|-------------|-----------|
-| macOS | ✓ | ✓ |
-| Windows | ✓ | ✓ |
-| Linux | ✓ | ✗ (REX SDK not available) |
-
-REX (`.rex`, `.rx2`, `.rcy`) is **input only** and requires the proprietary Reason REX SDK (macOS/Windows). All other formats work cross-platform.
 
 ## Installation
 
@@ -55,8 +44,6 @@ REX (`.rex`, `.rx2`, `.rcy`) is **input only** and requires the proprietary Reas
 brew install g-lok/tap/chirashi
 ```
 
-The [Homebrew formula](https://github.com/g-lok/homebrew-tap) installs a universal macOS binary (with REX Shared Library framework bundled) on macOS, or a prebuilt Linux amd64/arm64 binary on Linux. REX input is not available on Linux.
-
 ### Windows (Scoop)
 
 ```powershell
@@ -64,24 +51,25 @@ scoop bucket add g-lok https://github.com/g-lok/scoop-bucket
 scoop install chirashi
 ```
 
-The [Scoop manifest](https://github.com/g-lok/scoop-bucket) installs `chirashi.exe` plus the bundled `REX Shared Library.dll`.
-
 ### Manual install (GitHub Releases)
 
 Download the latest release for your platform from the [releases page](https://github.com/g-lok/chirashi/releases).
 
 ```bash
-# macOS — universal binary (Apple Silicon + Intel), REX framework bundled
-VERSION=<latest tag>  # e.g. v0.3.0
+# macOS — universal binary (Apple Silicon + Intel)
+VERSION=<latest tag>  # e.g. v0.5.0
 curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-macos.tar.gz"
 tar xzf "chirashi-$VERSION-macos.tar.gz"
 sudo mkdir -p /usr/local/opt
 sudo mv chirashi-$VERSION-macos /usr/local/opt/chirashi
 sudo ln -s /usr/local/opt/chirashi/chirashi /usr/local/bin/chirashi
+```
 
-# Linux amd64 — static binary, no REX support
-curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-linux-amd64"
-chmod +x chirashi-$VERSION-linux-amd64
+```bash
+# Linux amd64 — static binary
+VERSION=<latest tag>
+curl -LO "https://github.com/g-lok/chirashi/releases/download/$VERSION/chirashi-$VERSION-linux-amd64.tar.gz"
+tar xzf "chirashi-$VERSION-linux-amd64.tar.gz"
 sudo mv chirashi-$VERSION-linux-amd64 /usr/local/bin/chirashi
 ```
 
@@ -92,7 +80,7 @@ Invoke-WebRequest -Uri "https://github.com/g-lok/chirashi/releases/download/$VER
 Expand-Archive chirashi.zip -DestinationPath chirashi
 $installDir = "$env:LOCALAPPDATA\Programs\chirashi"
 New-Item -ItemType Directory -Force -Path $installDir
-Move-Item chirashi\chirashi-*\* $installDir -Force
+Move-Item chirashi\* $installDir -Force
 $env:Path += ";$installDir"
 [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$installDir", "User")
 ```
@@ -148,7 +136,8 @@ chirashi simpler.adv -o output.aif
 | `--sample-rate` | `-s` | source | Output sample rate in Hz (1k–1M) |
 | `--mono` | `-m` | false | Downmix to mono |
 | `--mono-mode` | — | `sum` | `sum`, `left`, `right`, `difference`, `dual-detect` |
-| `--tempo` | `-t` | 0 | Override tempo in BPM (0 = use original) |
+| `--tempo` | `-t` | 0 | Override tempo in BPM (0 = use original, clamped to 20-450 range) |
+| `--bpm-prefix` | — | false | Prepend BPM to filename (e.g. `128-Source.wav`). Sources: file metadata → filename patterns → `--tempo`. Ignored with `-o` (no `-l`) |
 | `--slice-limit` | `-l` | 0 | Max slices per output file |
 | `--no-slices` | `-n` | false | Ignore slice markers, render plain output |
 | `--recursive` | `-r` | false | Recurse subdirs (with `--input-dir`) |
@@ -159,15 +148,41 @@ chirashi simpler.adv -o output.aif
 | `--input-format` | — | auto | Force input format (override auto-detect) |
 | `--sample-path-mode` | — | `relative` | Sample path style in XML (reserved) |
 
+### BPM prefix
+
+The `--bpm-prefix` flag prepends the detected BPM to output filenames (e.g., `128-SourceName.wav`).
+
+**BPM resolution priority:**
+1. File metadata `OriginalTempo` (REX, CAF Apple Loop)
+2. File metadata `Tempo`
+3. Filename patterns (`_NNNbpm` suffix anywhere in name, or `NNN` prefix)
+4. `--tempo` CLI flag
+
+**Conflict handling:** If `--tempo` is provided but differs from metadata BPM by more than 0.5, a warning is printed and metadata BPM is used for the prefix.
+
+**Interaction with `-o` and `-l`:**
+- `-o` without `-l`: prefix is skipped (single output file, path is exact)
+- `-o` with `-l`: prefix is applied to each chunked output file
+
+**Formatting:** BPM is formatted as integer (e.g., `128`) or 1-decimal float (e.g., `137.8`). Trailing `.0` is stripped.
+
+```bash
+# With --bpm-prefix, outputs "137-Winstons.wav"
+chirashi "Winstons - Amen, Brother (ver.1).rx2" --bpm-prefix -o out.wav
+
+# With --bpm-prefix and -l, outputs "128-kit_01.wav", "128-kit_02.wav", etc.
+chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
+```
+
 ## Supported formats
 
 ### Input formats
 
 | Format | Extensions | Platform | Notes |
 |--------|------------|----------|-------|
-| REX2 | `.rx2` | macOS/Win | via REX SDK |
-| REX | `.rex` | macOS/Win | via REX SDK (legacy) |
-| RCY | `.rcy` | macOS/Win | via REX SDK (ReCycle document) |
+| REX2 | `.rx2` | All | Pure Go parser |
+| REX | `.rex` | All | Pure Go parser (legacy) |
+| RCY | `.rcy` | All | Pure Go parser (ReCycle document) |
 | Renoise XRNI | `.xrni` | All | ZIP container, pure Go parser |
 | Ableton Simpler | `.adv` | All | needs `--library-path` for sample resolution |
 | Ableton Drum Rack | `.adg` | All | needs `--library-path`; 128 pads max, auto-splits |
@@ -199,6 +214,8 @@ chirashi simpler.adv -o output.aif
 | Ableton ADV | `adv` | `.adv` + `.wav` | — | Simpler XML preset + per-slice WAVs |
 | Ableton ALS | `als` | `.als` + `.wav` | — | Live Set XML + per-slice WAVs |
 | Ableton ADG | `adg` | `.adg` + WAVs | 128 | Drum Rack XML + per-pad WAVs |
+
+**Note:** REX2 (`.rx2`) output is temporarily disabled. The encoder produces valid IFF structure but ReCycle rejects files due to DWOP compression differences from the original SDK. Use WAV output for sliced audio.
 
 ## Format details
 
@@ -321,7 +338,7 @@ Two-file output: a `.wav` companion and a `_slices.txt` configuration file. The 
 ```
 # ELEKTRON MULTI-SAMPLE MAPPING FORMAT
 version = 0
-name = 'REXConverter'
+name = 'chirashi'
 
 [[key-zones]]
 pitch = 24
@@ -347,19 +364,45 @@ chirashi loop.rx2 -f dt2pst -o kit.dt2pst
 
 ### REX / RX2 / RCY
 
-Proprietary Reason Studios format read via the REX C API. chirashi wraps the SDK in Zig (`extractor.zig` + `rex_bindings.zig`) and calls through CGo.
+REX formats are parsed entirely in pure Go (`internal/engine/rex2/`). No external SDK required.
 
-- **Input only** — chirashi reads REX/RX2/RCY and converts to any output format
-- **macOS/Windows only** — the REX SDK does not ship for Linux
-- On Linux, chirashi is built without REX support (CGo disabled, uses `extractor_stub.zig`)
-- Requires the REX Shared Library framework (macOS) or DLL (Windows) at runtime
+- **Input only** — REX2 output is temporarily disabled (see note below)
+- **All platforms supported** — no native SDK dependencies
+- Reads slice markers, tempo, sample rate, bit depth, and creator metadata
+- Supports 8/16/24/32-bit audio, mono and stereo
 
-For build setup, see [Building from source](#building-from-source).
+#### How the REX decoder works
+
+The `rex2/` package implements a complete REX2 parser in pure Go:
+
+1. **IFF chunk parsing**: REX2 is an IFF-based format. The decoder reads chunks sequentially:
+   - `CAT REX2` — file container
+   - `HEAD` — file header with format version
+   - `CREI` — creator info (name, copyright, URL, email)
+   - `TRSH` — transient sensitivity settings
+   - `SINF` — sample info (sample rate, bit depth, channels)
+   - `GLOB` — global data (BPM, time signature, grid)
+   - `SLCE` — slice table (PPQ positions, mute/locked states)
+   - `SDAT` — DWOP-compressed audio data
+
+2. **DWOP decompression**: The audio data uses DPCM (differential pulse-code modulation) with variable-length bit stuffing:
+   - Stereo: left channel stored directly, right channel as delta from left
+   - Predictor state maintained per-channel for decode
+   - Variable-length codes (1-5 bits per sample) based on magnitude
+
+3. **Slice filtering**: SLCE entries have visibility flags (normal, muted, locked). `isVisibleSliceBoundary()` filters based on state:
+   - State 0 (normal): visible
+   - State 1 (muted): hidden from `isVisibleSliceBoundary` but still counted in slice count
+   - State 2 (locked): visible
+
+4. **REX1 detection**: REX1 (`CAT REX\x01`) uses inline sample positions without SLCE. Returns error (no REX1 write support yet).
 
 ```bash
 chirashi loop.rx2 -s 44100 -b 16 -o loop.wav      # REX2 → WAV
 chirashi loop.rex -f pti -o rex_kit.pti            # REX → Polyend Tracker
 ```
+
+**Note:** REX2 output is temporarily disabled. The encoder produces valid IFF structure (GLOB, SLCE, SDAT chunks) but ReCycle rejects files due to DWOP compression producing different byte-for-byte output than the original SDK (~600 bytes size difference). Internal roundtrip (encode→decode) passes PCM validation. Use WAV output for sliced audio that works in ReCycle.
 
 ## Architecture
 
@@ -373,88 +416,57 @@ chirashi loop.rex -f pti -o rex_kit.pti            # REX → Polyend Tracker
                    │   runner.go     │
                    └────────┬────────┘
                             │
-             ┌──────────────┼──────────────┐
-             │              │              │
-       ┌──────▼──────┐ ┌─────▼─────┐ ┌──────▼──────┐
-       │   readers/  │ │ extractor │ │  encoders/  │
-       │ .xrni .adv  │ │   .zig    │ │ .wav .aif   │
-       │ .adg .als   │ │  (REX SDK)│ │ .aiff .caf  │
-       │ .aif .aiff  │ │           │ │ .aif-op1    │
-       │ .caf .wav   │ │           │ │ .pti .ot    │
-       │ .pti .ot    │ │           │ │ .xy .el     │
-        │ .xy .dt2pst │ │           │ │ .dt2pst .xrni│
-       │ .rex/.rx2/  │ │           │ │ .adv .als   │
-       │   .rcy*     │ │           │ │ .adg        │
-       └─────────────┘ └─────┬─────┘ └─────────────┘
-                           │ CGo
-                    ┌──────▼──────┐
-                    │  REX SDK    │  (macOS framework, Windows DLL)
-                    │  v1.9.2     │  (proprietary)
-                    └─────────────┘
+         ┌──────────────────┼──────────────────┐
+         │                  │                  │
+   ┌─────▼──────┐   ┌──────▼──────┐   ┌───────▼──────┐
+   │  readers/  │   │    bridge    │   │   encoders/  │
+   │            │   │  (rex2.go)  │   │             │
+   │  .xrni     │   │             │   │   .wav      │
+   │  .adv      │   │  DecodeREX2 │   │   .aif      │
+   │  .adg      │   │  EncodeREX2 │   │   .aiff     │
+   │  .als      │   │             │   │   .caf      │
+   │  .aif      │   │             │   │   .aif-op1  │
+   │  .caf      │   └─────────────┘   │   .pti      │
+   │  .wav      │                     │   .ot       │
+   │  .pti      │                     │   .xy       │
+   │  .ot       │                     │   .el       │
+   │  .xy       │                     │   .dt2pst   │
+   │  .dt2pst   │                     │   .xrni     │
+   │  .rex*     │                     │   .adv      │
+   │  .rx2      │                     │   .als      │
+   │  .rcy      │                     │   .adg      │
+   └────────────┘                     └─────────────┘
+
+   * .rex/.rx2/.rcy handled by internal/engine/rex2/ package
 ```
 
 - **cmd/root.go** — cobra CLI, flag validation, pipeline orchestration
 - **internal/engine/runner.go** — converts one file at a time, manages concurrency
-- **internal/engine/readers/** — format-specific input parsers (REX via Zig, others pure Go)
+- **internal/engine/readers/** — format-specific input parsers (pure Go)
+- **internal/engine/rex2/** — pure Go REX2 parser and encoder (DWOP compression)
 - **internal/engine/encoders/** — format-specific output writers
-- **internal/engine/extractor.zig** — Zig wrapper around the REX C API
-- **internal/engine/rex_bindings.zig** — manual extern declarations for REX SDK
-- **internal/engine/rex/REX.c** — Windows DLL loader
 
 ## Building from source
-
-chirashi uses [mise](https://mise.jdx.dev/) for tool versioning.
 
 ```bash
 git clone https://github.com/g-lok/chirashi.git
 cd chirashi
-mise install         # installs go + zig
-mise run build       # macOS binary
-mise run build-linux # Linux binaries (amd64, arm64, armv7) — no REX
+go build -o chirashi .
 ```
 
-The macOS build produces `build/chirashi` plus `build/Frameworks/REX Shared Library.framework/` (embedded REX framework, rpath-patched). Ship both together.
-
-The Linux build produces `build/chirashi-linux-amd64`, `build/chirashi-linux-arm64`, `build/chirashi-linux-arm`. REX input is disabled (SDK is macOS/Windows only).
-
-### REX SDK setup (macOS / Windows builds only)
-
-The Reason Studios REX SDK is proprietary and **not included** in this repository. CI uses a GPG-encrypted tarball (see [CI setup](#ci-setup-maintainers)). For local development, obtain the SDK from Reason (ships with ReCycle or Reason Studio).
-
-The build expects the framework at:
-
-```
-<REX_SDK>/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework
-```
-
-Set `REX_SDK` to the SDK root:
-
-```bash
-export REX_SDK=/Users/me/REXSDK          # if framework is at /Users/me/REXSDK/REXSDK_Mac_1.9.2/...
-mise run build
-```
-
-**Note:** The CI encryption keys are for automated builds only. Don't expect to decrypt `.github/workflows/secrets/rex-sdk-*.tar.gz.gpg` — you need the SDK from Reason.
+No external dependencies. Builds on macOS, Linux, and Windows with `CGO_ENABLED=0`.
 
 ### Test
 
 ```bash
-mise run test          # build + run Go test suite (macOS, includes REX tests)
-mise run test-linux    # build + test Linux binaries (REX tests skipped)
-```
-
-Without the REX SDK:
-
-```bash
-CGO_ENABLED=0 go test ./tests/...
+go test ./...
 ```
 
 ## Development
 
 ```bash
-mise run build         # build macOS binary
-mise run test          # build + run Go test suite
-mise run graphify      # generate knowledge graph
+go build -o chirashi .   # build binary
+go test ./...            # run test suite
 ```
 
 ### Test data
@@ -475,34 +487,6 @@ Test fixtures in `tests/testdata/`. Reference PCM data from the REX SDK in `test
 3. Add extension mapping in `runner.go` (`inputExtensions`)
 4. Add tests in `tests/reader_test.go`
 
-## CI setup (maintainers)
-
-> For repo maintainers only. Local development does not need this.
-
-CI builds the binary and runs the test suite on every push/PR. Uses a GPG-encrypted REX SDK tarball to avoid committing proprietary SDK binaries.
-
-### Required secrets
-
-- `GPG_SIGNING_KEY` — private GPG key (no passphrase, RSA 4096). Used to decrypt the REX SDK tarball.
-
-### Encrypting the REX SDK
-
-```bash
-# One-time setup: generate a keypair
-gpg --quick-generate-key "ci@example.com" default default 0
-
-# Export the public key
-gpg --export --armor ci@example.com > .github/workflows/secrets/chirashi-ci-gpg-public.key
-
-# Add to GitHub
-gh secret set GPG_SIGNING_KEY < private-key.asc
-
-# Encrypt the SDK
-gpg --encrypt --batch --recipient ci@example.com \
-    --output .github/workflows/secrets/rex-sdk-macos.tar.gz.gpg \
-    rex-sdk-macos.tar.gz
-```
-
 ## License
 
-chirashi is licensed under the terms in `LICENSE`. The Reason Studios REX SDK bundled with this repository is licensed separately — see `REX_SDK_LICENSE.txt`.
+chirashi is licensed under the terms in `LICENSE`.

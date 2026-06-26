@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -104,9 +105,6 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 
 	switch ext {
 	case ".rex", ".rx2", ".rcy":
-		if !HasREX() {
-			return fmt.Errorf("REX format not supported on this platform (REX SDK is proprietary, macOS/Windows only)")
-		}
 		sdkTempo := 0
 		if cfg.Tempo > 0 {
 			sdkTempo = cfg.Tempo * 1000
@@ -116,8 +114,11 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			if loopErr != nil {
 				return fmt.Errorf("loop render failed: %w", loopErr)
 			}
-			loop.CuePoints = nil
+			if cfg.SliceLimit > 0 && len(loop.CuePoints) > cfg.SliceLimit {
+				loop.CuePoints = loop.CuePoints[:cfg.SliceLimit]
+			}
 			slices = []SliceExtraction{*loop}
+			cfg.SliceLimit = 0 // prevent groupSlices from splitting cue points
 		} else {
 			slices, err = RenderSlicesPreview(fileData, cfg.SampleRate, sdkTempo)
 			if err != nil {
@@ -194,15 +195,38 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			if err := Force44100Spec(&chunks[i]); err != nil {
 				return err
 			}
-	case "dt2pst":
-		if err := Force48kSpec(&chunks[i]); err != nil {
-			return err
-		}
+		case "dt2pst":
+			if err := Force48kSpec(&chunks[i]); err != nil {
+				return err
+			}
+		default:
+			if cfg.SampleRate > 0 && chunks[i].Metadata.SampleRate != cfg.SampleRate {
+				if err := ForceSampleRate(&chunks[i], cfg.SampleRate); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
 	totalFiles := len(chunks)
 	nameLimit := fileNameLimit(cfg.Format)
+
+	// Resolve BPM prefix once per source file
+	bpmPrefix := ""
+	displayBPM := 0.0
+	if cfg.BpmPrefix {
+		if cfg.OutputFile != "" && cfg.SliceLimit <= 0 {
+			fmt.Fprintf(os.Stderr, "warning: --bpm-prefix has no effect when -o is used without -l\n")
+		} else {
+			bpm, fromMeta := resolveBPM(chunks[0].Metadata, sourcePath, cfg.Tempo)
+			bpmPrefix = formatBPMPrefix(bpm)
+			displayBPM = bpm
+			if fromMeta && cfg.Tempo > 0 && math.Abs(bpm-float64(cfg.Tempo)) > 0.5 {
+				fmt.Fprintf(os.Stderr, "warning: --tempo %d ignored for filename prefix; using %.1f BPM from file metadata\n",
+					cfg.Tempo, bpm)
+			}
+		}
+	}
 
 	var wg sync.WaitGroup
 	errCh := make(chan error, totalFiles)
@@ -213,7 +237,7 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			defer wg.Done()
 
 			suffix := splitSuffix(idx, totalFiles, cfg.Format, nameLimit)
-			baseName := outputBaseName(sourcePath, cfg, suffix, cfg.Format)
+			baseName := outputBaseName(sourcePath, cfg, suffix, cfg.Format, bpmPrefix)
 
 			if err := writeOutputFiles(baseName, &c, cfg, idx, totalFiles); err != nil {
 				errCh <- fmt.Errorf("failed encoding for %s: %w", baseName, err)
@@ -221,9 +245,17 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			}
 
 			if !cfg.Quiet {
+				bpmDisplay := displayBPM
+				if bpmDisplay <= 0 {
+					if c.Metadata.OriginalTempo > 0 {
+						bpmDisplay = c.Metadata.OriginalTempo
+					} else if c.Metadata.Tempo > 0 {
+						bpmDisplay = c.Metadata.Tempo
+					}
+				}
 				fmt.Printf("Converting: %s -> %s | Slices: %d | Channels: %d | Rate: %dHz | Tempo: %.1f BPM\n",
 					filepath.Base(sourcePath), filepath.Base(baseName), len(c.CuePoints),
-					c.Metadata.Channels, c.Metadata.SampleRate, c.Metadata.OriginalTempo)
+					c.Metadata.Channels, c.Metadata.SampleRate, bpmDisplay)
 			}
 		}(idx, c)
 	}
@@ -456,6 +488,9 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		}
 		return EncodeSimplerADV(fm, extraction, relPath)
 
+	case "rx2":
+		return fmt.Errorf("rx2 output is temporarily disabled: the encoder produces files that ReCycle rejects due to DWOP compression differences from the original SDK. Use WAV output for now")
+
 	case "adg":
 		slices := splitExtractionIntoSlices(extraction)
 
@@ -508,6 +543,96 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 	}
 }
 
+// extractBPMFromName searches for BPM information in a base filename
+// (without extension). Returns 0 if no BPM found.
+//
+// Priority:
+//  1. Explicit "NNN bpm" / "NNN.bpm" keyword pattern anywhere in name
+//  2. 3-digit numeric prefix (common in sample packs like "120Stereo")
+func extractBPMFromName(name string) float64 {
+	lower := strings.ToLower(name)
+
+	// Pattern 1: digits preceding "bpm" keyword, with word boundary before
+	bpmIdx := strings.Index(lower, "bpm")
+	if bpmIdx > 0 {
+		end := bpmIdx
+		start := end
+		decimalOK := true
+		for start > 0 {
+			c := lower[start-1]
+			if c >= '0' && c <= '9' {
+				start--
+			} else if c == '.' && decimalOK {
+				start--
+				decimalOK = false
+			} else {
+				break
+			}
+		}
+		if start < end {
+			sepOK := start == 0
+			if !sepOK {
+				c := lower[start-1]
+				sepOK = c == '_' || c == '-' || c == ' ' || c == '('
+			}
+			if sepOK {
+				if bpm, err := strconv.ParseFloat(lower[start:end], 64); err == nil && bpm >= 30 && bpm <= 500 {
+					return bpm
+				}
+			}
+		}
+	}
+
+	// Pattern 2: 3-digit numeric prefix (e.g., "120Stereo", "100HasCreatorInfo")
+	if len(name) >= 3 {
+		c0, c1, c2 := name[0], name[1], name[2]
+		if c0 >= '0' && c0 <= '9' && c1 >= '0' && c1 <= '9' && c2 >= '0' && c2 <= '9' {
+			if bpm, err := strconv.Atoi(string(name[:3])); err == nil && bpm >= 30 && bpm <= 500 {
+				if len(name) == 3 || name[3] < '0' || name[3] > '9' {
+					return float64(bpm)
+				}
+			}
+		}
+	}
+
+	return 0
+}
+
+func formatBPMPrefix(bpm float64) string {
+	if bpm <= 0 {
+		return ""
+	}
+	s := fmt.Sprintf("%.1f", bpm)
+	s = strings.TrimSuffix(s, ".0")
+	return s + "-"
+}
+
+// resolveBPM determines the best BPM value for filename prefixing.
+// Returns the BPM and whether it came from file metadata.
+//
+// Priority:
+//  1. metadata.OriginalTempo
+//  2. metadata.Tempo
+//  3. filename patterns (extractBPMFromName)
+//  4. --tempo CLI override
+//  5. 0 (no BPM available)
+func resolveBPM(meta RexMetadata, sourceName string, tempoOverride int) (float64, bool) {
+	if meta.OriginalTempo > 0 {
+		return meta.OriginalTempo, true
+	}
+	if meta.Tempo > 0 {
+		return meta.Tempo, true
+	}
+	baseName := strings.TrimSuffix(filepath.Base(sourceName), filepath.Ext(sourceName))
+	if bpm := extractBPMFromName(baseName); bpm > 0 {
+		return bpm, false
+	}
+	if tempoOverride > 0 {
+		return float64(tempoOverride), false
+	}
+	return 0, false
+}
+
 func fileNameLimit(format string) int {
 	switch format {
 	case "dt2pst":
@@ -553,11 +678,11 @@ func splitSuffix(idx, totalFiles int, format string, _ int) string {
 	}
 }
 
-func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string) string {
+func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format, bpmPrefix string) string {
 	if cfg.OutputFile != "" && cfg.SliceLimit <= 0 {
 		// User explicitly specified the output path AND no chunking.
-		// Use it as-is (no sanitization, no suffix). Strip the extension;
-		// writeOutputFiles adds it back.
+		// Use it as-is (no sanitization, no suffix, no BPM prefix).
+		// BPM prefix is silently skipped here — warn was already printed.
 		return strings.TrimSuffix(cfg.OutputFile, filepath.Ext(cfg.OutputFile))
 	}
 
@@ -567,17 +692,23 @@ func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string
 		// writeOutputFiles can add format-specific extension.
 		baseName := strings.TrimSuffix(cfg.OutputFile, filepath.Ext(cfg.OutputFile))
 		nameLimit := fileNameLimit(format)
-		if nameLimit > 0 && len(filepath.Base(baseName))+len(suffix) > nameLimit {
-			dir := filepath.Dir(baseName)
-			file := filepath.Base(baseName)
-			file = file[:nameLimit-len(suffix)]
-			baseName = filepath.Join(dir, file)
+		dir := filepath.Dir(baseName)
+		file := filepath.Base(baseName)
+		needed := len(bpmPrefix) + len(file) + len(suffix)
+		if nameLimit > 0 && needed > nameLimit {
+			avail := nameLimit - len(bpmPrefix) - len(suffix)
+			if avail < 0 {
+				avail = 0
+			}
+			if len(file) > avail {
+				file = file[:avail]
+			}
 		}
-		return baseName + suffix
+		return filepath.Join(dir, bpmPrefix+file+suffix)
 	}
 
 	if sourcePath == "stdin" {
-		baseName := "output"
+		baseName := bpmPrefix + "output"
 		nameLimit := fileNameLimit(format)
 		baseName = sanitizeName(baseName+suffix, nameLimit)
 		if cfg.OutputDir != "" {
@@ -589,7 +720,7 @@ func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format string
 	baseName := strings.TrimSuffix(filepath.Base(sourcePath), filepath.Ext(sourcePath))
 
 	nameLimit := fileNameLimit(format)
-	suffixed := sanitizeName(baseName, nameLimit-len(suffix))
+	suffixed := bpmPrefix + sanitizeName(baseName, nameLimit-len(suffix)-len(bpmPrefix))
 	suffixed += suffix
 
 	if cfg.OutputDir != "" {

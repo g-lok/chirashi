@@ -2,27 +2,24 @@
 
 ## Development setup
 
-chirashi uses [mise](https://mise.jdx.dev/) for tool versioning.
-
 ```bash
 git clone https://github.com/g-lok/chirashi.git
 cd chirashi
-mise install
+go build -o chirashi .
 ```
 
 ## Workflow
 
 - Use [jj](https://jj-vcs.dev/) (Jujutsu), not raw git
 - Create a feature rev off `main@origin`
-- Run tests before pushing: `mise run test`
+- Run tests before pushing: `go test ./...`
 - Push with `jj git push --bookmark <branch>`
 - Open a PR against `main`
 
 ## Code style
 
 - Go: `gofmt`, no `golint` warnings
-- Zig: `zig fmt`
-- Commit messages: Conventional Commits (see `~/.config/opencode/AGENTS.md`)
+- Commit messages: Conventional Commits
 - No AI attribution in commit messages
 
 ## Testing

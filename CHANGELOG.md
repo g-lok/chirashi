@@ -5,9 +5,69 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-26
+
+### Added
+
+- **Pure Go REX2 implementation**: Decodes and encodes REX/RX2/RCY entirely in Go
+  with no external dependencies. The `internal/engine/rex2/` package implements:
+  - IFF chunk parser (CAT REX2, HEAD, CREI, TRSH, SINF, GLOB, SLCE, SDAT)
+  - DWOP compression decoder with per-channel predictor state and variable-length bit stuffing
+  - DWOP compression encoder for producing valid REX2 files
+  - Legacy PTI and OT format readers
+  - REX1 detection (returns error, no write support yet)
+
+- **`--bpm-prefix` flag**: Prepends detected BPM to output filename (e.g.,
+  `128-SourceName.wav`). BPM resolved from: metadata (REX OriginalTempo/Tempo,
+  CAF Apple Loop beat count) → filename patterns (`_NNNbpm` suffix, `NNN` numeric
+  prefix) → `--tempo` override.
+
+### Changed
+
+- **Build system simplified**: No more Zig, CGo, or REX SDK. Single `CGO_ENABLED=0 go build`
+  produces a working binary for all platforms.
+- **Linux support complete**: REX/RX2/RCY input now works on Linux (was blocked
+  by REX SDK unavailability).
+
+### Fixed
+
+- **GLOB chunk layout**: `reserved` field is 2 bytes (not 4), `silenceSelected`
+  is 2 bytes (not 1). GLOB chunk now correctly 22 bytes to match original.
+- **Tempo clamping**: REX format requires 20-450 BPM. Tempo is now clamped to
+  this range in the encoder. Values below 20 BPM → 20 BPM; above 450 BPM → 450 BPM.
+- **Progress message BPM fallback**: `Tempo` field now displayed when
+  `OriginalTempo` is 0 (previously showed `0.0 BPM` for non-REX/CAF sources).
+
+### Known Issues
+
+- **REX2 encoder DWOP compression**: Produces valid IFF structure but ReCycle
+  rejects roundtrip files. SDAT size differs from original by ~600 bytes.
+  Internal decode→encode→decode passes PCM validation. **RX2 output is
+  temporarily disabled** — use WAV output for now.
+
+### Removed
+
+- **REX SDK dependency**: Zig bindings, CGo wrapper, and framework/DLL loading
+  code removed. No more GPG-encrypted SDK tarballs in CI.
+
+## [0.4.0] - 2026-06-25
+
+### Added
+
+- **`--bpm-prefix` flag**: Prepends detected BPM to output filename (e.g.,
+  `128-SourceName.wav`). BPM resolved from: metadata (REX SDK `OriginalTempo` /
+  `Tempo`, CAF Apple Loop beat count) → filename patterns (`_NNNbpm` suffix,
+  `NNN` numeric prefix) → `--tempo` override.
+
+### Fixed
+
+- **Progress message BPM fallback**: `Tempo` field now displayed when
+  `OriginalTempo` is 0 (previously showed `0.0 BPM` for non-REX/CAF sources).
+
 ## [0.3.1] - 2026-06-24
 
 ### Fixed
+
 - **OT bit depth**: `ForceOTSpec()` was incorrectly forced to 24-bit. Reverted —
   OT supports both 16 and 24-bit via user's FLEX FORMAT setting. Encoder now
   respects user-specified bit depth with floor clamp at 16 (8-bit → 16).
@@ -25,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2026-06-23
 
 ### Added
+
 - **CAF encoder+reader**: writes Apple CAF with `lpcm` PCM + Apple Loop metadata
   UUIDs (beat count, time sig, descriptors) + beat markers UUID for slice
   positions. Reader reconstructs slices from beat markers. Self-registers via
@@ -48,6 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `simpler` format flag aliased to `adv` (was silently writing WAV).
 
 ### Changed
+
 - **README.md rewritten**: TOC, accurate format details per row (Pascal
   strings, 80-bit float sample rate, 48-slice PTI limit, Apple Loop UUID docs),
   architecture diagram lists all 11 readers + 12 encoders, build/dev at bottom.
@@ -60,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correctness.
 
 ### Fixed
+
 - **AIFF MARK corruption**: was writing null-terminated C strings + wrong
   `markSize` (`2 + numMarkers*8 + numMarkers*2`) → Pascal strings + correct
   formula `2 + sum((7 + len(name) + pad))`.
@@ -77,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-06-22
 
 ### Added
+
 - Initial chirashi release (rebranded from rexconverter)
 - REX/RX2/RCY input via Reason REX SDK v1.9.2
 - Output formats: WAV, AIFF, PTI (Polyend Tracker), OT (Octatrack), OP-1 AIFF,
@@ -90,6 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GPG-encrypted REX SDK distribution via GitHub Actions
 
 ### Changed
+
 - Package renamed `rexengine` → `engine`
 - Binary renamed `rexconverter` → `chirashi`
 - Build pipeline uses `b.createModule()` with manual Zig bindings instead of
@@ -97,6 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test step uses `CGO_ENABLED=0` to avoid linking CGo symbols in test mode
 
 ### Fixed
+
 - `-o` flag now uses the output path as-is in single-file mode
 - `-o` + `-l` produces chunked output with `_01`, `_02` suffixes
 - PTI encoder handles empty CuePoints (`--no-slices`) without panic
