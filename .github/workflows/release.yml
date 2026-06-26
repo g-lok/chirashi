@@ -59,9 +59,9 @@ jobs:
           fi
 
       - name: Checksums
-        run: |
-          cd build/releases
-          sha256sum *.* >> CHECKSUMS.txt
+          run: |
+            cd build/releases
+            sha256sum *.tar.gz *.zip >> CHECKSUMS.txt
 
       - name: Upload
         uses: softprops/action-gh-release@v2
