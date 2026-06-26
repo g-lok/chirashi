@@ -21,8 +21,16 @@ dist/
 htmlcov/
 .cache/
 
+# Zig cache
+.zig-cache/
+
 # Go build outputs
 bin/
+chirashi
+test_builtin
+
+# REX SDK framework (removed, cleanup)
+Frameworks/
 
 # Graphify output (regenerated on demand)
 graphify-out/
