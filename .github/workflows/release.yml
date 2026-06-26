@@ -1,305 +1,72 @@
-# -------------------------------------------------------------------
-# Release — chirashi
-# -------------------------------------------------------------------
-# Triggered by pushing a tag matching v*.  Builds macOS universal +
-# Windows x86_64 release archives, signs the macOS binary (ad-hoc),
-# and uploads everything to a GitHub Release.
-#
-# ── Secrets ────────────────────────────────────────────────────────
-# The REX SDK is proprietary. GPG-encrypted tarballs are committed
-# under `.github/workflows/secrets/` to bypass the 64 KB secret limit.
-# Create these secrets in your repo:
-#
-#   GPG_SIGNING_KEY  — ASCII-armored GPG private key (no passphrase)
-#                      used to decrypt the SDK tarballs
-#
-#   How to create and configure it (and encrypt the SDKs):
-#   Refer to PRIVATE.md in the parent directory for automated packaging
-#   and secret upload instructions.
-#
-# ── Code Signing ──────────────────────────────────────────────────
-# Currently uses ad-hoc signing ("-" identity).  For production:
-#   1. Obtain an Apple Developer ID Application certificate
-#   2. Set secrets:
-#        MACOS_CERT_B64   — base64 of .p12 certificate
-#        MACOS_CERT_PASS  — certificate password
-#        KEYCHAIN_PASS    — temporary keychain password
-#   3. Uncomment the certificate import and update codesign identity
-#
-# ── Notarization (optional) ───────────────────────────────────────
-# After signing, submit to Apple for notarization:
-#   xcrun notarytool submit build/releases/*.tar.gz \
-#     --apple-id "${{ secrets.APPLE_ID }}" \
-#     --team-id "${{ secrets.APPLE_TEAM_ID }}" \
-#     --password "${{ secrets.APPLE_APP_PASSWORD }}" \
-#     --wait
-#   xcrun stapler staple build/releases/*.tar.gz
-# -------------------------------------------------------------------
 name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    tags: ["v*"]
 
 env:
   VERSION: ${{ github.ref_name }}
-  RELEASES_DIR: build/releases
-  REX_SDK: /tmp/rexlibs
-  # mise uses default data dir (~/.local/share/mise) on CI runners
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
-  build-linux:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            ext: ""
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+          - goos: darwin
+            goarch: arm64
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            ext: .exe
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
         with:
-          fetch-depth: 0
+          go-version: "1.26"
 
-      # ── Install mise (toolchain: Go) ──────────────────────────
-      - name: Install mise
-        run: |
-          curl -sSL https://mise.run | sh
-          echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
-          mise install  # release-linux only needs Go
-
-      - name: Show tool versions
-        run: |
-          go version
-
-      - name: Cache Go modules
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go
-          key: ${{ runner.os }}-go-release-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-release-
-
-      - name: Build Linux binaries (amd64, arm64, arm)
-        run: |
-          VERSION="${{ env.VERSION }}"
-          LDFLAGS="-X github.com/g-lok/chirashi/cmd.version=$VERSION"
-          mkdir -p "${{ env.RELEASES_DIR }}"
-
-          echo "=== Linux amd64 ==="
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-            -ldflags="$LDFLAGS" -o "${{ env.RELEASES_DIR }}/chirashi-$VERSION-linux-amd64" main_linux.go
-
-          echo "=== Linux arm64 ==="
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
-            -ldflags="$LDFLAGS" -o "${{ env.RELEASES_DIR }}/chirashi-$VERSION-linux-arm64" main_linux.go
-
-          echo "=== Linux arm (32-bit, armv7) ==="
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build \
-            -ldflags="$LDFLAGS" -o "${{ env.RELEASES_DIR }}/chirashi-$VERSION-linux-arm" main_linux.go
-
-      - name: List Linux artifacts
-        run: ls -lh ${{ env.RELEASES_DIR }}/chirashi-*-linux*
-
-      - name: Upload Linux binaries to Release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
-        if: startsWith(github.ref, 'refs/tags/v')
-        with:
-          files: |
-            ${{ env.RELEASES_DIR }}/chirashi-*-linux-*
-          fail_on_unmatched_files: false
+      - name: Build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-release:
-    runs-on: macos-latest
-    steps:
-      # ── Checkout ────────────────────────────────────────────────
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          fetch-depth: 0
-
-      # ── Install mise (toolchain: Go + Zig) ──────────────────────
-      - name: Install mise
+          LDFLAGS: "-s -w -X github.com/g-lok/chirashi/cmd.version=${{ env.VERSION }}"
         run: |
-          curl -sSL https://mise.run | sh
-          echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
-          mise install  # build-releases needs Go + Zig
+          mkdir -p build/releases
+          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+            go build -ldflags="$LDFLAGS" \
+            -o "build/releases/chirashi-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}/chirashi${{ matrix.ext }}" .
 
-      # ── Tool versions ───────────────────────────────────────────
-      - name: Show tool versions
+      - name: Package
         run: |
-          go version
-          zig version
-          mise --version 2>/dev/null || true
-
-      # ── Import GPG key for SDK decryption ────────────────────────
-      - name: Import GPG signing key
-        run: |
-          echo "${{ secrets.GPG_SIGNING_KEY }}" | gpg --import --batch
-          # confirm the key was imported
-          gpg --list-keys --batch 2>/dev/null | head -5
-
-      # ── Restore REX SDK (macOS framework) ───────────────────────
-      # Cache avoids re-decrypting on every run (the raw tarball is
-      # large and GPG decryption takes time).  Decrypt only on cache
-      # miss.
-      - name: Restore REX SDK from cache (macOS)
-        id: cache-rex-macos
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: |
-            /tmp/rexlibs/REXSDK_Mac_1.9.2
-          key: rex-sdk-macos-release-${{ hashFiles('.github/workflows/secrets/rex-sdk-macos.tar.gz.gpg') }}
-
-      - name: Decrypt REX SDK macOS
-        if: steps.cache-rex-macos.outputs.cache-hit != 'true'
-        run: |
-          # Extract to a temp scratch dir, then find & move into place.
-          # This avoids double-directory nesting if the tarball itself
-          # already contains the REXSDK_Mac_1.9.2/Mac/Deployment prefix.
-          SCRATCH="$(mktemp -d)"
-          gpg --decrypt --batch \
-            --output "$SCRATCH/rex-sdk-macos.tar.gz" \
-            .github/workflows/secrets/rex-sdk-macos.tar.gz.gpg
-          tar xzf "$SCRATCH/rex-sdk-macos.tar.gz" -C "$SCRATCH"
-          FRAMEWORK="$(find "$SCRATCH" -type d -name '*.framework' | head -1)"
-          if [ -z "$FRAMEWORK" ]; then
-            echo "::error::REX Shared Library.framework not found in tarball"
-            ls -laR "$SCRATCH" | head -50
-            exit 1
+          cd build/releases
+          ARCHIVE="chirashi-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = windows ]; then
+            zip -r "$ARCHIVE.zip" "$ARCHIVE/"
+          else
+            tar czf "$ARCHIVE.tar.gz" "$ARCHIVE/"
           fi
-          mkdir -p "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment"
-          cp -r "$FRAMEWORK" "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/"
-          ls -ld "$REX_SDK/REXSDK_Mac_1.9.2/Mac/Deployment/REX Shared Library.framework"
-          rm -rf "$SCRATCH"
 
-      # ── Restore REX SDK (Windows DLLs) ──────────────────────────
-      - name: Restore REX SDK from cache (Windows)
-        id: cache-rex-win
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: |
-            /tmp/rexlibs/REXSDK_Win_1.9.2
-          key: rex-sdk-win-release-${{ hashFiles('.github/workflows/secrets/rex-sdk-windows.tar.gz.gpg') }}
-
-      - name: Decrypt REX SDK Windows
-        if: steps.cache-rex-win.outputs.cache-hit != 'true'
+      - name: Checksums
         run: |
-          SCRATCH="$(mktemp -d)"
-          gpg --decrypt --batch \
-            --output "$SCRATCH/rex-sdk-windows.tar.gz" \
-            .github/workflows/secrets/rex-sdk-windows.tar.gz.gpg
-          tar xzf "$SCRATCH/rex-sdk-windows.tar.gz" -C "$SCRATCH"
-          DLL="$(find "$SCRATCH" -name 'REX Shared Library.dll' | head -1)"
-          if [ -z "$DLL" ]; then
-            echo "::error::REX Shared Library.dll not found in tarball"
-            ls -laR "$SCRATCH" | head -50
-            exit 1
-          fi
-          mkdir -p "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment"
-          cp "$DLL" "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/"
-          cp "$(dirname "$DLL")/REX Shared Library.lib" "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/"
-          ls -la "$REX_SDK/REXSDK_Win_1.9.2/Win/x64/Deployment/"
-          rm -rf "$SCRATCH"
+          cd build/releases
+          sha256sum *.* >> CHECKSUMS.txt
 
-      # ── Cache Go modules ────────────────────────────────────────
-      - name: Cache Go modules
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      - name: Upload
+        uses: softprops/action-gh-release@v2
         with:
-          path: |
-            ~/go/pkg/mod
-            ~/Library/Caches/go
-          key: ${{ runner.os }}-go-release-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-release-
-
-      # ── Cache Zig artifacts ─────────────────────────────────────
-      - name: Cache Zig global cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: |
-            ~/.cache/zig
-            ~/Library/Caches/zig
-          key: ${{ runner.os }}-zig-release-${{ hashFiles('**/build.zig', '**/*.zig') }}
-          restore-keys: |
-            ${{ runner.os }}-zig-release-
-
-      # ── Build release archives ──────────────────────────────────
-      - name: Build releases (macOS universal + Windows x86_64)
-        run: mise run build-releases
-        env:
-          CGO_LDFLAGS_ALLOW: "-Wl,-rpath,@executable_path"
-
-      # ── Codesign macOS binary (ad-hoc) ──────────────────────────
-      # Production: replace "-" with "Developer ID Application: …"
-      # and import the signing certificate from secrets.
-      - name: Codesign (ad-hoc) macOS binary
-        run: |
-          VERSION="${{ env.VERSION }}"
-          RELEASES="${{ env.RELEASES_DIR }}"
-          # mise run build-releases names the artifact using git describe.
-          # Derive the actual directory name from the tarball.
-          cd "$RELEASES"
-          MACOS_TARBALL="$(ls chirashi-*-macos.tar.gz | head -1)"
-          DIRNAME="${MACOS_TARBALL%.tar.gz}"
-
-          tar xzf "$MACOS_TARBALL"
-          codesign --force --sign - \
-            "$DIRNAME/chirashi"
-          rm -f "$MACOS_TARBALL"
-          tar czf "$MACOS_TARBALL" "$DIRNAME"
-          rm -rf "$DIRNAME"
-          cd "$OLDPWD"
-
-      # ── SHA256 checksums ────────────────────────────────────────
-      - name: Compute SHA256 checksums
-        id: checksums
-        run: |
-          cd "${{ env.RELEASES_DIR }}"
-          for f in *.tar.gz *.zip; do
-            sha256sum "$f" >> CHECKSUMS.txt
-          done
-          echo "### Checksums" >> "$GITHUB_STEP_SUMMARY"
-          cat CHECKSUMS.txt >> "$GITHUB_STEP_SUMMARY"
-          {
-            echo "CHECKSUMS<<HEREDOC_MARKER"
-            cat CHECKSUMS.txt
-            echo "HEREDOC_MARKER"
-          } >> "$GITHUB_OUTPUT"
-
-      # ── List artifacts ──────────────────────────────────────────
-      - name: List release artifacts
-        run: ls -lh "${{ env.RELEASES_DIR }}/"
-
-      # ── Create GitHub Release ───────────────────────────────────
-      - name: Create Release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
-        if: startsWith(github.ref, 'refs/tags/v')
-        with:
-          name: chirashi ${{ env.VERSION }}
-          tag_name: ${{ env.VERSION }}
-          body: |
-            ## chirashi ${{ env.VERSION }}
-
-            ### SHA256 Checksums
-
-            ```
-            ${{ steps.checksums.outputs.CHECKSUMS }}
-            ```
-
-            **Notes:**
-            - REX SDK framework (macOS) and DLL (Windows) are bundled in the archives.
-            - The macOS binary is ad-hoc signed. Apple Silicon users may need:
-              `xattr -d com.apple.quarantine chirashi`
-            - See the [README](https://github.com/${{ github.repository }}) for usage.
-          files: |
-            ${{ env.RELEASES_DIR }}/*.tar.gz
-            ${{ env.RELEASES_DIR }}/*.zip
-            ${{ env.RELEASES_DIR }}/CHECKSUMS.txt
+          files: build/releases/*
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

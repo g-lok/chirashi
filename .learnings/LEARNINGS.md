@@ -955,3 +955,105 @@ Release tagging uses `~/bin/release <tag> [rev]`. Creates jj tag + pushes via `j
 ### Resolution
 - **Resolved**: 2026-06-24T19:45:00Z
 
+---
+
+## [LRN-20260625-033] best_practice
+
+**Logged**: 2026-06-25T20:30:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: backend
+
+### Summary
+Added `--bpm-prefix` flag. BPM resolution chain: metadata → filename patterns → --tempo override. Filename BPM extraction supports `_NNNbpm` keyword (anywhere) and 3-digit numeric prefix. Conflict detection warns when --tempo and metadata BPM differ >0.5.
+
+### Details
+- Three new functions in `runner.go`: `extractBPMFromName()`, `formatBPMPrefix()`, `resolveBPM()`
+- `resolveBPM` priority: `OriginalTempo > Tempo > filename > --tempo > none`
+- `extractBPMFromName` matches: `_128bpm`, `128bpm_loop`, `cool_128bpm_loop`, `120Stereo`, `128_loop`
+- Range filter 30-500, rejects: `29bpm`, `501bpm`, `808State` (>500)
+- `formatBPMPrefix`: 1 decimal precision, strips trailing `.0`, appends `-`
+- `outputBaseName` now takes `bpmPrefix string` parameter
+- Name-limit accounting: `sanitizeName(baseName, nameLimit - len(suffix) - len(bpmPrefix))`
+- `-o` without `-l` + `--bpm-prefix` → warns and skips prefix
+- `-o` with `-l` + `--bpm-prefix` → prefix applied per chunk
+- Progress message now falls back through `OriginalTempo → Tempo` (was always `OriginalTempo`)
+
+### Metadata
+- Source: feature_implementation
+- Related Files: internal/engine/runner.go, internal/engine/types.go, cmd/root.go, internal/engine/bpm_test.go, README.md, CHANGELOG.md, AGENTS.md
+- Tags: bpm, filename, prefix, cli, feature
+- Pattern-Key: feature.bpm-prefix
+- Recurrence-Count: 1
+
+---
+
+## [LRN-20260625-034] knowledge_gap
+
+**Logged**: 2026-06-25T20:00:00Z
+**Priority**: high
+**Status**: open
+**Area**: infra
+
+### Summary
+Zig 0.16.0 Release* binaries hang on macOS 26.5.1 (dyld4 bug). Docker cross-compilation produces a binary but it still hangs at runtime. Cannot build AND test Release binaries locally.
+
+### Details
+- macOS 26.5.1 (25F80) has a dyld4 bug affecting Zig 0.16.0 ReleaseSafe/ReleaseFast/ReleaseSmall binaries
+- Binary hangs before `main()` — dyld4 fails during image loading
+- Debug binary also now suspected of hanging (not yet confirmed after clean env)
+- Docker cross-compile (Debian container, Zig 0.16.0) produces a valid Mach-O binary:
+  - Built against SDK 26.4 (latest bundled with Zig 0.16.0)
+  - `@loader_path/../Frameworks/REX Shared Library.framework/Versions/A/REX Shared Library` linked correctly
+  - Binary runs without `dyld` errors when Framework is present
+  - **BUT hangs at runtime** — dyld4 bug is in the host kernel, not the SDK version
+- GitHub Actions `macos-latest` runner likely uses an older macOS (not 26.5.1) — CI passes
+- "Builds on Debian, execution on macOS" cannot fix this bug
+- Workaround: `build-docker` produces CI-identical binary for release packaging; testing requires CI or older macOS
+
+### Metadata
+- Source: error
+- Tags: zig, dyld4, macos, docker, build
+- Related Files: mise.toml (tasks.build-docker), Dockerfile.builder
+- Pattern-Key: infra.build.docker.nodynamic
+- Recurrence-Count: 1
+- First-Seen: 2026-06-25
+- Last-Seen: 2026-06-25
+
+---
+
+## [LRN-20260626-001] best_practice
+
+**Logged**: 2026-06-26T00:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: infra
+
+### Summary
+Removing a complex dependency (REX SDK) requires cleaning up CI/workflows, not just code. Orphaned GPG secrets, Zig setup, and SDK download steps become dead weight.
+
+### Details
+- REX SDK removal: replaced Zig+CGo+framework with pure Go `rex2/` package
+- Old CI had: setup-go, GPG decryption, Zig SDK download, Zig setup, Go build with Zig
+- Old Release had: GPG-encrypted SDK tarballs, Zig toolchain, framework bundling, rpath patching
+- New CI is: `go build ./...` + `go vet ./...` + `go test ./...` on ubuntu-latest
+- New Release is: `CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build` cross-compiling 5 platforms from single ubuntu runner
+- Orphaned: `.github/workflows/secrets/` directory (now empty — GPG keys + encrypted SDKs deleted)
+
+### Suggested Action
+When removing a major dependency:
+1. Audit CI workflows for dependency-specific steps (setup, decryption, toolchain)
+2. Audit Release workflows for bundling/patching steps
+3. Delete orphaned secrets directories
+4. Simplify matrix to minimum needed for validation
+5. Go cross-compiles cleanly from single platform — no need to test on each target
+
+### Metadata
+- Source: user_feedback
+- Tags: ci, go, release, workflow, simplify, cross-compile
+- Related Files: .github/workflows/ci.yml, .github/workflows/release.yml
+- Pattern-Key: infra.ci.simplify-after-dep-removal
+- Recurrence-Count: 1
+- First-Seen: 2026-06-26
+- Last-Seen: 2026-06-26
+

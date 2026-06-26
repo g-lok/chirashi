@@ -1,17 +1,11 @@
 # macOS
 .DS_Store
 
-# REX SDK framework — downloaded and decrypted at build time
-internal/engine/libs/
-
 # Build artifacts
-go_engine.a
-go_engine.h
 *.o
 *.a
 *.h
-# Allow REX SDK header (needed for REX.c to compile on Windows)
-!internal/engine/REX.h
+build/
 
 # Python / Poetry
 .venv/
@@ -20,17 +14,12 @@ __pycache__/
 *.egg-info/
 *.egg
 dist/
-build/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 .coverage
 htmlcov/
 .cache/
-
-# Zig build cache and output
-.zig-cache/
-zig-out/
 
 # Go build outputs
 bin/

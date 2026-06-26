@@ -2,31 +2,63 @@
 
 ## Project overview
 
-chirashi is a Go + Zig CLI for converting between sliced instrument formats. The Go side handles CLI, file format parsing, encoders, and orchestration. The Zig side wraps the Reason Studios REX SDK (proprietary) for REX/RX2/RCY input.
+Pure Go CLI for converting sliced instrument formats. Parses/encodes REX/RX2/RCY in-process (no SDK, no CGo, no Zig).
 
-- **Go**: cmd/, internal/engine/ (most files), tests/
-- **Zig**: internal/engine/extractor.zig, extractor_stub.zig, rex_bindings.zig
-- **C**: internal/engine/rex/REX.c (Windows DLL loader only)
-- **REX SDK**: macOS framework at internal/engine/libs/macos/, Windows DLL
+- **Go**: cmd/, internal/engine/, internal/engine/rex2/, tests/
+- **No Zig, no C, no CGo, no REX SDK**
+
+REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decoder/encoder, slice model, legacy PTI/OT fallback, REX1 detection.
+
+## History / Why Pure Go
+
+### REX SDK → Pure Go migration (v0.4.0)
+
+**Why we abandoned the REX SDK:**
+- **macOS Intel + Zig dynlb issue**: Zig 0.16.0's dynamic library binding (`dynlb`) crashed on macOS Intel when loading the REX framework via CGo. The crash happened deep in Zig's linker during module initialization — not fixable without upstream Zig changes.
+- **v26 breaking change**: Zig 0.16.x broke the CGo calling convention in a way that affected `cgo(callback)` handling. The project was stuck on Zig 0.15.x which had different APIs.
+- **macOS framework complexity**: Embedding the REX Shared Library.framework required rpath patching, framework bundling, and different handling per architecture (Apple Silicon vs Intel).
+- **Windows DLL loader issues**: The REX.c dynamic loader had path resolution issues on Windows.
+- **CI complexity**: Required GPG-encrypted tarballs of the SDK, GPG keys in secrets, and decryption steps in GitHub Actions.
+
+**Solution**: Implemented REX2 format decoding/encoding entirely in Go:
+- `rex2/reader.go`: IFF chunk parser, handles CAT REX2, HEAD, CREI, TRSH, SINF, GLOB, SLCE, SDAT
+- `rex2/dwop.go`: DPCM decoder with predictor state per channel, variable-length bit stuffing
+- `rex2/encoder.go`: Produces valid CAT REX2 files with DWOP compression
+- `rex2/legacy.go`: PTI and OT legacy format readers (same SliceInfo output)
+
+**REX2 encoder status (v0.5.0):**
+- Produces valid IFF structure (22-byte GLOB matches original)
+- DWOP compression implemented but produces slightly different output than original SDK
+- ReCycle rejects roundtrip files despite correct IFF structure
+- **RX2 OUTPUT DISABLED** — use WAV output for now
+- Decoder works correctly for input
 
 ## Key constraints
 
-### REX SDK is proprietary
-- Never commit `internal/engine/libs/`
-- Never commit `internal/engine/rex/` SDK headers
-- Never commit `internal/engine/Frameworks/`
-- All binary SDK files are decrypted at CI build time from GPG-encrypted tarballs
-- See `~/.config/opencode/AGENTS.md` "Proprietary CI assets" for the GPG keypair pattern
+### REX2 Encoder issues (known)
+- DWOP compression produces different byte-for-byte output than original SDK
+- SDAT size differs from original by ~600 bytes for typical files
+- ReCycle validation fails even though IFF structure is correct
+- Internal roundtrip (encode→decode) passes PCM validation
+- Root cause likely in DWOP predictor state or bit-stuffing implementation
 
-### Linux has no REX SDK
-- `build.zig` uses `extractor_stub.zig` for Linux targets
-- `bridge_stubs.go` (`//go:build !cgo`) provides no-op stubs when CGo is disabled
-- CI test step on macOS sets `CGO_ENABLED=0` to use stubs (so `go test` doesn't need Zig object files)
+### REX2 decoder details
+- `rex2/types.go`: FileInfo, SliceInfo, CreatorInfo, REX2File structs. PTR stubs (format uses 4-byte PTR/length, not 8-byte offset for SDAT chunks, which differ from many docs).
+- `rex2/reader.go`: Decode reads CAT REX2 → iterates chunks. Handles HEAD (glob+slice metadata), CREI (creator name/copyright/url/email/free text), TRSH (transient sensitivity/decay/freeze), SINF (sample info), GLOB (BPM, grids), SLCE (slice boundaries+ppq), SDAT (DWOP compressed audio). Raw PCM validated via `MTHD` frame count vs actual decoded frames.
+- `rex2/dwop.go`: DWOP decoder — DPCM with predictor state per channel (L + delta for stereo). Supports 8/16/24/32-bit. Bit stuffing: variable-length code per sample, states 0-4 determine encoding length.
+- `rex2/encoder.go` (`rex2.Encode`): Produces CAT REX2 with HEAD, CREI, SINF, GLOB, SLCE, SDAT (DWOP). Stereo encodes as L + delta channel. Bit depth from FileInfo.BitDepth. Predictor state per channel.
+- `rex2/legacy.go`: PTI (`TI\x01`/`PTI\x00`) and OT (`FORM...DPS1`/`OT\x00\x00`) readers for legacy ReCycle formats. Returns same SliceInfo slice.
+- `bridge.go`: Adapter between rex2 package and engine. DecodeREX2 → SliceExtraction (PCM float32, cue markers, metadata). Tempo/OriginalTempo divided by 1000 (REX2 stores BPM*1000). CREI + TRSH mapped to RexMetadata. Pure Go, no CGo, no build tags.
+- **Edge cases**: Single-slice files (no SLCE chunk). RCY has no tempo (REX2 has all zeros). 8-bit audio less common.
+- **REX1 detection**: REX1 format uses `CAT REX\x01` (no SLCE, inline sample positions). rex2 package detects and returns error (no REX1 write support yet).
 
-### Zig translate-c is broken in 0.16.0
-- `zig translate-c` hangs on REX.h (packed structs, function pointer typedefs)
-- `build.zig` uses `b.createModule()` with hand-written `rex_bindings.zig` (extern declarations)
-- Do not revert to `b.addTranslateC()`
+### CLI --bpm-prefix
+- `--bpm-prefix` (bool): prepend detected BPM to output filename
+- BPM resolution chain: metadata OriginalTempo → Tempo → filename `_NNNbpm`/`NNN` prefix → `--tempo` override
+- `--tempo` conflict (>0.5 BPM diff from metadata) → use metadata, print warning
+- `-o` without `-l`: skip prefix silently, print warning
+- `-o` with `-l`: prefix applied to each chunk
+- BPM formatted as integer or 1-decimal float, trailing `.0` stripped
 
 ### CLI -o semantics
 - When `-o` is set WITHOUT `-l` (slice limit): use the path as-is, no sanitization, no suffix
@@ -48,64 +80,35 @@ chirashi is a Go + Zig CLI for converting between sliced instrument formats. The
 - **Scale factor**: WAV/OP-1/PTI use 32767.0; AIFF/CAF use 32768.0 (both correct per spec)
 - **Simpler ADV**: SlicingRegions value is always 2 (start+end per part)
 - **EncodeWavContainer**: only DOWNGRADES bit depth (when targetBitDepth < extraction.BitDepth). Never upgrades. To force higher bit depth, set extraction metadata + pass matching targetBitDepth (or 0 to skip check)
+- **REX2 output (.rx2)**: DISABLED. The encoder produces valid IFF but ReCycle rejects files due to DWOP compression differences. Use WAV output.
 
 ## Build system
 
 ```bash
-mise run build         # macOS binary via zig build
-mise run build-linux   # Linux binaries (amd64, arm64, armv7)
+CGO_ENABLED=0 go build -o chirashi .
 ```
 
-`build.zig` is the coordinator:
-1. Runs `go build -buildmode=c-archive` to produce go_engine.a
-2. Compiles extractor.zig (with rex_bindings.zig for C bindings)
-3. Links them together
-4. Links platform-specific SDK (REX framework on macOS, REX.c dynamic loader on Windows, nothing on Linux)
+Single binary, no deps, works on macOS/Linux/Windows for ALL formats including REX/RX2/RCY.
 
-The go_engine.a archive contains Go code only. The Zig code is linked separately.
+### main.go entry point
+Single `main.go` with `main() { cmd.Execute() }`. No build tags, no CGo, no Zig archive.
 
 ## Distribution / Release packaging
 
-Release pipeline (.github/workflows/release.yml) triggered by `v*` tag.
+Release pipeline (.github/workflows/release.yml) triggered by `v*` tag. Pure Go cross-compile — no Zig, no REX SDK, no frameworks.
 
-### macOS
-- `mise run build-releases` (mise.toml) orchestrates:
-  1. Cross-compile Go → c-archive for amd64 + arm64 via `zig cc`
-  2. Zig build links Go archive + `rex_bindings.zig` per arch
-  3. `lipo -create` → universal binary
-  4. Framework rpath patched: `@loader_path/../Frameworks/...` → `@executable_path/Frameworks/...`
-  5. REX framework copied into `build/Frameworks/`
-- Archive: `chirashi-$VERSION-macos.tar.gz` → `chirashi-$VERSION-macos/` dir with `chirashi` + `Frameworks/`
-- Ad-hoc signed in CI (`codesign --force --sign -`). Not notarized yet.
-- Homebrew formula bundles framework. Manual install: extract tarball, `sudo mv` to `/usr/local/opt/chirashi`, symlink.
-- REX SDK loaded via direct framework linking (`REX_DLL_LOADER=0`), no dynamic loader needed.
+### All platforms
+- `go build -ldflags="-s -w"` for all OS/arch combos
+- No framework bundling, no DLLs, no rpath patching
+- Static binaries on Linux, self-contained on macOS/Windows
 
-### Windows
-- Same `mise run build-releases` step builds Go c-archive with `zig cc -target x86_64-windows-gnu`
-- Zig links Go archive + `REX.c` (dynamic loader with `-DREX_WINDOWS=1`) + `rex_bindings.zig`
-- BSD ar format fix: Go produces BSD-format archives → `ar x` + `zig ar rcs` converts to GNU format
-- DLL + .lib copied from SDK: `REX Shared Library.dll` + `REX Shared Library.lib`
-- Archive: `chirashi-$VERSION-windows.zip` → `chirashi-$VERSION-windows/` dir with exe + DLLs
-- Scoop manifest installs both. Manual: unzip to `Programs\chirashi`, add to PATH.
-- REX SDK loaded via `REXInitializeDLL_DirPath()` (REX.c dynamic loader, `REX_DLL_LOADER=1`)
+### Archive
+- `chirashi-$VERSION-$OS-$ARCH.tar.gz` / `.zip`
+- Single binary, extract anywhere
 
-### Linux
-- Pure Go build: `main_linux.go` with `//go:build linux && !cgo`
-- No Zig, no CGo, no REX SDK. Built with `CGO_ENABLED=0`.
-- Three binaries: amd64, arm64, arm (GOARM=7 for armv7)
-- Static binaries, no runtime deps. Homebrew downloads raw binary.
-- `build.zig` / `zig build` SKIPPED entirely on Linux — just `go build main_linux.go`
-
-### main.go entry point split
-- `main.go` (`//go:build !linux`): imports `"C"`, exports `GoMainEntry()`, `main()` is empty. Zig binary entrypoint calls `GoMainEntry()` via c-archive.
-- `main_linux.go` (`//go:build linux && !cgo`): plain `main() { cmd.Execute() }`. No CGo, no Zig.
-
-### CI
-- macOS framework decrypted from `.github/workflows/secrets/rex-sdk-macos.tar.gz.gpg`
-- Windows DLL + .lib decrypted from `rex-sdk-windows.tar.gz.gpg`
-- GPG private key via `GPG_SIGNING_KEY` secret. Cached via `actions/cache` to avoid re-decrypt.
-- `CGO_LDFLAGS_ALLOW: "-Wl,-rpath,@executable_path"` required for CGo rpath.
-- Release body includes CHECKSUMS.txt + quarantine xattr note.
+### Release body
+- CHECKSUMS.txt
+- Single binary, no quarantine issues (no frameworks)
 
 ## Testing
 
@@ -116,7 +119,15 @@ Release pipeline (.github/workflows/release.yml) triggered by `v*` tag.
 - `samples/` — real-world test files fallback when `testdata/` missing
 - Test helpers (`findTestXRNI`, `findTestSimpler`, `findTestDrumRack`) search `testdata/` first, then `samples/`
 
-Run with `CGO_ENABLED=0` to avoid Zig linker issues. Integration tests skip if the binary isn't found.
+Run with `go test ./...` — no CGo, no zig, no special flags.
+
+### REX2 tests needed (BLOCKED)
+- Round-trip: encode known slices → decode → verify PCM identical
+- Real .rx2 file: decode sample file → verify slices + PCM match expected
+- Legacy: PTI/OT format parsing
+- Edge: single-slice, stereo, various bit depths, RCY
+- DWOP: test individual state transitions, bit stuffing
+- **NOTE**: REX2 encoder produces incorrect DWOP output — needs debugging before re-enabling
 
 ## Workflow
 
@@ -129,7 +140,7 @@ Run with `CGO_ENABLED=0` to avoid Zig linker issues. Integration tests skip if t
 
 ## Local tooling
 
-- `mise` for go/zig versioning (`mise.toml`)
+- `mise` for go versioning (`mise.toml`) — Zig no longer needed
 - `poetry` for the graphify project (`pyproject.toml`, `.venv/`)
 - `graphify` for codebase knowledge graph
 - `gh` for GitHub operations (PRs, CI runs)
@@ -138,7 +149,5 @@ Run with `CGO_ENABLED=0` to avoid Zig linker issues. Integration tests skip if t
 
 - Don't run `apt install`, `brew install`, or system-wide `pip install` — use local workspaces
 - Don't commit `a.out`, `build/`, root `rexconverter`, `internal/engine/libs/`, `internal/engine/Frameworks/` — all in `.gitignore`
-- Don't use `b.addTranslateC()` in build.zig — it hangs
 - Don't add `bin/` to git — gitignore blocks it
 - Don't modify the squashed PR #1 commit (`45c4f3b`) — it's immutable
-- Don't use `enum(T)` extern in zig 0.16.0 — just `enum(T)` works (extern is rejected)
