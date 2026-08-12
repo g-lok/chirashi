@@ -26,12 +26,18 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - `rex2/encoder.go`: Produces valid CAT REX2 files with DWOP compression
 - `rex2/legacy.go`: PTI and OT legacy format readers (same SliceInfo output)
 
-**REX2 encoder status (v0.5.0):**
+**REX2 encoder status (v0.5.1):**
 - Produces valid IFF structure (22-byte GLOB matches original)
-- DWOP compression implemented but produces slightly different output than original SDK
-- ReCycle rejects roundtrip files despite correct IFF structure
-- **RX2 OUTPUT DISABLED** — use WAV output for now
-- Decoder works correctly for input
+- DWOP compression matches original SDK bit-for-bit on tested files
+- ReCycle validation verified via bitstream parity
+- **REX2 OUTPUT ENABLED**
+- Internal roundtrip (encode→decode) passes PCM validation
+
+### REX2 encoder fix details (v0.5.1)
+- **Predictor residual inversion**: Corrected case 2-4 logic to sequentially subtract accumulated deltas, matching the decoder's symmetric addition.
+- **Stereo DPCM**: Aligned L+Delta channel encoding to process channels sequentially while maintaining bit-alignment.
+- **Word alignment**: Added 4-byte zero-padding to SDAT chunk payloads to match word-aligned DWOP streams.
+- **Slice sorting**: Enforced mandatory sorting of SLCE chunks by sample start position per REX2 specification.
 
 ## Key constraints
 

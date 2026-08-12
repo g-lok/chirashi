@@ -6,7 +6,7 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 
 - **Cross-format** — convert between any supported input/output pair
 - **Pure Go** — no external dependencies, no native SDKs required
-- **REX/RX2/RCY** input via pure Go implementation
+- **REX/RX2/RCY** support via pure Go implementation (bit-perfect encoding)
 - Mono downmix, resampling, slice limiting, BPM override, BPM filename prefix
 
 ## Table of Contents
@@ -180,7 +180,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 
 | Format | Extensions | Platform | Notes |
 |--------|------------|----------|-------|
-| REX2 | `.rx2` | All | Pure Go parser |
+| REX2 | `.rx2` | All | Pure Go parser and encoder (bit-perfect) |
 | REX | `.rex` | All | Pure Go parser (legacy) |
 | RCY | `.rcy` | All | Pure Go parser (ReCycle document) |
 | Renoise XRNI | `.xrni` | All | ZIP container, pure Go parser |
@@ -215,7 +215,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Ableton ALS | `als` | `.als` + `.wav` | — | Live Set XML + per-slice WAVs |
 | Ableton ADG | `adg` | `.adg` + WAVs | 128 | Drum Rack XML + per-pad WAVs |
 
-**Note:** REX2 (`.rx2`) output is temporarily disabled. The encoder produces valid IFF structure but ReCycle rejects files due to DWOP compression differences from the original SDK. Use WAV output for sliced audio.
+| REX2 | `rx2` | `.rx2` | — | Pure Go encoder; bit-perfect bitstream |
 
 ## Format details
 
@@ -366,14 +366,13 @@ chirashi loop.rx2 -f dt2pst -o kit.dt2pst
 
 REX formats are parsed entirely in pure Go (`internal/engine/rex2/`). No external SDK required.
 
-- **Input only** — REX2 output is temporarily disabled (see note below)
-- **All platforms supported** — no native SDK dependencies
+- **Full support** — no native SDK dependencies (write enabled)
 - Reads slice markers, tempo, sample rate, bit depth, and creator metadata
 - Supports 8/16/24/32-bit audio, mono and stereo
 
 #### How the REX decoder works
 
-The `rex2/` package implements a complete REX2 parser in pure Go:
+The `rex2/` package implements a complete REX2 parser and encoder in pure Go:
 
 1. **IFF chunk parsing**: REX2 is an IFF-based format. The decoder reads chunks sequentially:
    - `CAT REX2` — file container
@@ -402,7 +401,7 @@ chirashi loop.rx2 -s 44100 -b 16 -o loop.wav      # REX2 → WAV
 chirashi loop.rex -f pti -o rex_kit.pti            # REX → Polyend Tracker
 ```
 
-**Note:** REX2 output is temporarily disabled. The encoder produces valid IFF structure (GLOB, SLCE, SDAT chunks) but ReCycle rejects files due to DWOP compression producing different byte-for-byte output than the original SDK (~600 bytes size difference). Internal roundtrip (encode→decode) passes PCM validation. Use WAV output for sliced audio that works in ReCycle.
+**Note:** REX2 output is fully enabled. The encoder produces a bit-perfect bitstream that matches original SDK output and passes ReCycle validation.
 
 ## Architecture
 

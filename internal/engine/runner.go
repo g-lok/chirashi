@@ -489,7 +489,16 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		return EncodeSimplerADV(fm, extraction, relPath)
 
 	case "rx2":
-		return fmt.Errorf("rx2 output is temporarily disabled: the encoder produces files that ReCycle rejects due to DWOP compression differences from the original SDK. Use WAV output for now")
+		path := basePath + ".rx2"
+		outDir := filepath.Dir(path)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		data, err := EncodeREX2(extraction, cfg.Tempo)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(path, data, 0o644)
 
 	case "adg":
 		slices := splitExtractionIntoSlices(extraction)

@@ -16,10 +16,11 @@
 - [ ] D2PST companion WAV lookup via manifest.xml (currently requires matching
       filename without extension — manifest.xml may specify a different WAV path)
 
-## REX2 Encoder (Known Issue)
+## REX2 Encoder
 
-- [ ] Fix DWOP compression to match original SDK output (ReCycle validation)
-- [ ] Re-enable REX2 output once DWOP compression is fixed
+- [x] Fix DWOP compression to match original SDK output (bit-perfect match confirmed)
+- [x] Re-enable REX2 output
+- [ ] Add REX1 write support
 
 ## Tooling
 
