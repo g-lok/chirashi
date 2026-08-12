@@ -2,6 +2,7 @@ package rex2
 
 import (
 	"encoding/binary"
+	"sort"
 )
 
 // bitWriter accumulates bits into big-endian 32-bit words (DWOP format).
@@ -42,6 +43,10 @@ func (w *bitWriter) finish() []byte {
 	if w.bitCount > 0 {
 		w.flushWord()
 	}
+	// Pad to 4-byte boundary if needed (DWOP streams are always word-aligned)
+	for len(w.bytes)%4 != 0 {
+		w.bytes = append(w.bytes, 0)
+	}
 	return w.bytes
 }
 
@@ -67,12 +72,22 @@ func (c *dwopCompressor) predictorResidual(idx int, sample2x int32, d [5]int32) 
 	case 0:
 		return sample2x
 	case 1:
+		// nd0 := addInt32(*d0, s2x) -> s2x = nd0 - *d0
 		return subInt32(sample2x, d[0])
 	case 2:
+		// nd1 := addInt32(*d1, s2x)
+		// nd0 := addInt32(*d0, nd1) -> nd1 = nd0 - *d0 -> s2x = (nd0 - *d0) - *d1
 		return subInt32(subInt32(sample2x, d[0]), d[1])
 	case 3:
+		// nd2 := addInt32(*d2, s2x)
+		// nd1 := addInt32(*d1, nd2)
+		// nd0 := addInt32(*d0, nd1) -> nd2 = nd1 - *d1 = (nd0 - *d0) - *d1 -> s2x = ((nd0 - *d0) - *d1) - *d2
 		return subInt32(subInt32(subInt32(sample2x, d[0]), d[1]), d[2])
 	case 4:
+		// nd3 := addInt32(*d3, s2x)
+		// nd2 := addInt32(*d2, nd3)
+		// nd1 := addInt32(*d1, nd2)
+		// nd0 := addInt32(*d0, nd1) -> s2x = (((nd0 - *d0) - *d1) - *d2) - *d3
 		return subInt32(subInt32(subInt32(subInt32(sample2x, d[0]), d[1]), d[2]), d[3])
 	default:
 		return sample2x
@@ -220,8 +235,9 @@ func (c *dwopCompressor) compressStereo(in []int32) []byte {
 	for f := 0; f < len(in)/2; f++ {
 		left2x := in[f*2] * 2
 		right2x := in[f*2+1] * 2
+		delta2x := right2x - left2x
 		c.encodeChannel(left2x, &d[0], &a[0], &j[0], &rbits[0], bw)
-		c.encodeChannel(right2x-left2x, &d[1], &a[1], &j[1], &rbits[1], bw)
+		c.encodeChannel(delta2x, &d[1], &a[1], &j[1], &rbits[1], bw)
 	}
 	return bw.finish()
 }
@@ -423,7 +439,13 @@ func Encode(pcm []int32, info FileInfo, slices []SliceInfo, creator CreatorInfo)
 	// SLCE chunks inside nested CAT container
 	if len(slices) > 0 {
 		slCatStart := w.beginCat("SLCL")
-		for _, s := range slices {
+		// REX2 spec: SLCE chunks MUST be sorted by sample start position
+		sortedSlices := make([]SliceInfo, len(slices))
+		copy(sortedSlices, slices)
+		sort.Slice(sortedSlices, func(i, j int) bool {
+			return sortedSlices[i].SampleStart < sortedSlices[j].SampleStart
+		})
+		for _, s := range sortedSlices {
 			slStart := w.beginChunk("SLCE")
 			w.put32(uint32(s.SampleStart))
 			w.put32(uint32(s.SampleLength))
