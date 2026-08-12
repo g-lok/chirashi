@@ -8,10 +8,12 @@
 
 ## Features
 
-- [ ] Add WAV reading for batch input (currently WAV is output-only)
-- [ ] Add SFZ output format
+- [x] Add WAV reading for batch input (v1.1.0)
+- [x] Add SFZ output format (v1.1.0)
+- [x] Add Decent Sampler output format (v1.1.0)
+- [x] Add Akai MPC XPM output format (v1.1.0)
+- [x] Sample rate auto-detection from input file (v1.1.0)
 - [ ] Add EXS24 output format
-- [ ] Sample rate auto-detection from input file
 - [ ] Multi-channel output (>2 channels)
 - [ ] D2PST companion WAV lookup via manifest.xml (currently requires matching
       filename without extension — manifest.xml may specify a different WAV path)
