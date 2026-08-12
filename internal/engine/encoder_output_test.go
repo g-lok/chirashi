@@ -591,3 +591,57 @@ func TestDeviceMaxSlices(t *testing.T) {
 		t.Fatal("pti max slices should be 48")
 	}
 }
+
+func TestEncodeSFZ(t *testing.T) {
+	ext := testExtraction()
+	var buf bytes.Buffer
+	if err := EncodeSFZ(&buf, ext, "test.wav"); err != nil {
+		t.Fatalf("EncodeSFZ: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "<region>") {
+		t.Fatal("missing <region> tag")
+	}
+	if !strings.Contains(output, "sample=test.wav") {
+		t.Fatal("missing sample path")
+	}
+	if !strings.Contains(output, "offset=22050") {
+		t.Fatal("missing slice offset")
+	}
+}
+
+func TestEncodeDecentSampler(t *testing.T) {
+	ext := testExtraction()
+	var buf bytes.Buffer
+	if err := EncodeDecentSampler(&buf, ext, "test.wav"); err != nil {
+		t.Fatalf("EncodeDecentSampler: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "<DecentSampler>") {
+		t.Fatal("missing <DecentSampler> tag")
+	}
+	if !strings.Contains(output, "path=\"test.wav\"") {
+		t.Fatal("missing sample path")
+	}
+	if !strings.Contains(output, "start=\"22050\"") {
+		t.Fatal("missing slice start")
+	}
+}
+
+func TestEncodeXPM(t *testing.T) {
+	ext := testExtraction()
+	var buf bytes.Buffer
+	if err := EncodeXPM(&buf, ext, "test.wav", "test_prog"); err != nil {
+		t.Fatalf("EncodeXPM: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "<MPCVObject>") {
+		t.Fatal("missing <MPCVObject> tag")
+	}
+	if !strings.Contains(output, "<ProgramName>test_prog</ProgramName>") {
+		t.Fatal("missing program name")
+	}
+	if !strings.Contains(output, "<SampleStart>22050</SampleStart>") {
+		t.Fatal("missing sample start tag")
+	}
+}

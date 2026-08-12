@@ -208,6 +208,9 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Polyend Tracker | `pti` | `.pti` | 48 | Embedded PCM, auto-splits if >48 |
 | Octatrack | `ot` | `.ot` + `.wav` | 64 | Sidecar + companion WAV |
 | OP-XY preset | `xy` | `.preset.zip` | 24 | ZIP with patch.json + per-slice WAVs |
+| SFZ mapping | `sfz` | `.sfz` + `.wav` | — | Plain WAV + .sfz sidecar (open standard) |
+| Decent Sampler | `ds` | `.dspreset` + `.wav` | — | Plain WAV + .dspreset sidecar (free sampler) |
+| Akai MPC program | `xpm` | `.xpm` + `.wav` | 128 | Modern XML program (MPC Live/One/X) |
 | Elektron multi-sample | `el` | `_slices.txt` + `.wav` | 64 | TOML-like config + companion WAV |
 | Digitakt II | `dt2pst` | `.dt2pst` | 64 | ZIP with manifest.json + WAV + binary preset |
 | Apple Loop CAF | `caf` | `.caf` | — | 44100 Hz only; Apple Loop UUID metadata |

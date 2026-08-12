@@ -46,3 +46,27 @@ Always use bit-by-bit bitstream comparison against known-good SDK files when mod
 - Promoted: AGENTS.md, README.md
 
 ---
+
+## [LRN-20260812-V110] best_practice
+
+**Logged**: 2026-08-12T12:15:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: backend
+
+### Summary
+Implemented "Open Ecosystem" formats (SFZ, Decent Sampler, MPC XPM)
+
+### Details
+1. **SFZ**: Uses `offset` and `end` opcodes to map slices in a companion WAV. This avoids splitting audio into multiple files and preserves high fidelity.
+2. **Decent Sampler**: XML-based (.dspreset). Maps regions using `start` and `end` attributes.
+3. **Akai MPC XPM**: Maps up to 128 slices to Pads/Instruments. Critical for modern MPC hardware workflow.
+4. **Sample Rate Auto-Detection**: Pipeline now defaults to source rate if -s is omitted, improving UX for multi-rate libraries.
+
+### Suggested Action
+Verify XPM compatibility with MPC Software 2.11+.
+
+### Metadata
+- Source: feature_expansion
+- Related Files: internal/engine/encoder_sfz.go, internal/engine/encoder_ds.go, internal/engine/encoder_xpm.go
+- Tags: sfz, mpchardware, decentsampler

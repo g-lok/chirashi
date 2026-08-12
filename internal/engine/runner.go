@@ -200,8 +200,12 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 				return err
 			}
 		default:
-			if cfg.SampleRate > 0 && chunks[i].Metadata.SampleRate != cfg.SampleRate {
-				if err := ForceSampleRate(&chunks[i], cfg.SampleRate); err != nil {
+			targetSR := cfg.SampleRate
+			if targetSR <= 0 {
+				targetSR = chunks[i].Metadata.SampleRate
+			}
+			if targetSR > 0 && chunks[i].Metadata.SampleRate != targetSR {
+				if err := ForceSampleRate(&chunks[i], targetSR); err != nil {
 					return err
 				}
 			}
@@ -499,6 +503,89 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 			return err
 		}
 		return os.WriteFile(path, data, 0o644)
+
+	case "sfz":
+		wavPath := basePath + ".wav"
+		sfzPath := basePath + ".sfz"
+		outDir := filepath.Dir(wavPath)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		fw, err := os.Create(wavPath)
+		if err != nil {
+			return err
+		}
+		// Write plain WAV without internal markers (SFZ handles the slicing)
+		extCopy := *extraction
+		extCopy.CuePoints = nil
+		if err := EncodeWavContainer(fw, &extCopy, cfg.BitRate); err != nil {
+			fw.Close()
+			return err
+		}
+		fw.Close()
+
+		fs, err := os.Create(sfzPath)
+		if err != nil {
+			return err
+		}
+		defer fs.Close()
+		relWav := filepath.Base(wavPath)
+		return EncodeSFZ(fs, extraction, relWav)
+
+	case "ds":
+		wavPath := basePath + ".wav"
+		dsPath := basePath + ".dspreset"
+		outDir := filepath.Dir(wavPath)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		fw, err := os.Create(wavPath)
+		if err != nil {
+			return err
+		}
+		extCopy := *extraction
+		extCopy.CuePoints = nil
+		if err := EncodeWavContainer(fw, &extCopy, cfg.BitRate); err != nil {
+			fw.Close()
+			return err
+		}
+		fw.Close()
+
+		fds, err := os.Create(dsPath)
+		if err != nil {
+			return err
+		}
+		defer fds.Close()
+		relWav := filepath.Base(wavPath)
+		return EncodeDecentSampler(fds, extraction, relWav)
+
+	case "xpm":
+		wavPath := basePath + ".wav"
+		xpmPath := basePath + ".xpm"
+		outDir := filepath.Dir(wavPath)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		fw, err := os.Create(wavPath)
+		if err != nil {
+			return err
+		}
+		extCopy := *extraction
+		extCopy.CuePoints = nil
+		if err := EncodeWavContainer(fw, &extCopy, cfg.BitRate); err != nil {
+			fw.Close()
+			return err
+		}
+		fw.Close()
+
+		fx, err := os.Create(xpmPath)
+		if err != nil {
+			return err
+		}
+		defer fx.Close()
+		relWav := filepath.Base(wavPath)
+		progName := filepath.Base(basePath)
+		return EncodeXPM(fx, extraction, relWav, progName)
 
 	case "adg":
 		slices := splitExtractionIntoSlices(extraction)
