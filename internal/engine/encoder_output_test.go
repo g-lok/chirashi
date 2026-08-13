@@ -674,5 +674,14 @@ func TestOutputBaseNameSuffix(t *testing.T) {
 	if baseName2 != expected2 {
 		t.Errorf("expected %q, got %q", expected2, baseName2)
 	}
+
+	// Double underscore case
+	baseName3 := outputBaseName("input (special).wav", cfg, suffix2, "wav", "")
+	// "input (special)" -> "input__special_" -> "input_special"
+	// + "_01" -> "input_special_01"
+	expected3 := "/tmp/out/input_special_01"
+	if baseName3 != expected3 {
+		t.Errorf("expected %q, got %q", expected3, baseName3)
+	}
 }
 

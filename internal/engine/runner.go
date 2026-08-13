@@ -752,7 +752,15 @@ func sanitizeName(name string, limit int) string {
 			sanitized = append(sanitized, '_')
 		}
 	}
-	result := strings.TrimSpace(string(sanitized))
+	result := string(sanitized)
+	for strings.Contains(result, "__") {
+		result = strings.ReplaceAll(result, "__", "_")
+	}
+	result = strings.Trim(result, "_ ")
+	result = strings.ReplaceAll(result, " ", "_")
+	for strings.Contains(result, "__") {
+		result = strings.ReplaceAll(result, "__", "_")
+	}
 	if limit > 0 && len(result) > limit {
 		result = result[:limit]
 	}
