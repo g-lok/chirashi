@@ -817,7 +817,9 @@ func outputBaseName(sourcePath string, cfg PipelineConfig, suffix, format, bpmPr
 
 	nameLimit := fileNameLimit(format)
 	suffixed := bpmPrefix + sanitizeName(baseName, nameLimit-len(suffix)-len(bpmPrefix))
-	suffixed += suffix
+	if suffix != "" {
+		suffixed += suffix
+	}
 
 	if cfg.OutputDir != "" {
 		if cfg.Preserve && cfg.InputDir != "" {

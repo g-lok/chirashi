@@ -645,3 +645,34 @@ func TestEncodeXPM(t *testing.T) {
 		t.Fatal("missing sample start tag")
 	}
 }
+
+func TestOutputBaseNameSuffix(t *testing.T) {
+	cfg := PipelineConfig{
+		OutputDir: "/tmp/out",
+	}
+
+	// Single output case (totalFiles = 1)
+	suffix := splitSuffix(0, 1, "wav", 255)
+	if suffix != "" {
+		t.Fatalf("expected empty suffix for single file, got %q", suffix)
+	}
+
+	baseName := outputBaseName("input.wav", cfg, suffix, "wav", "")
+	expected := "/tmp/out/input"
+	if baseName != expected {
+		t.Errorf("expected %q, got %q", expected, baseName)
+	}
+
+	// Multiple output case (totalFiles = 2)
+	suffix2 := splitSuffix(0, 2, "wav", 255)
+	if suffix2 != "_01" {
+		t.Fatalf("expected _01 suffix, got %q", suffix2)
+	}
+
+	baseName2 := outputBaseName("input.wav", cfg, suffix2, "wav", "")
+	expected2 := "/tmp/out/input_01"
+	if baseName2 != expected2 {
+		t.Errorf("expected %q, got %q", expected2, baseName2)
+	}
+}
+
