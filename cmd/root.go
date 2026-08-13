@@ -138,8 +138,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringSliceVarP(&inputFiles, "input-file", "i", []string{}, "Target ReCycle input file(s)")
-	rootCmd.Flags().StringVarP(&inputDir, "input-dir", "d", "", "Scan directory for .rex/.rx2 files")
+	rootCmd.Flags().StringSliceVarP(&inputFiles, "input-file", "i", []string{}, "Input slice-compatible files (REX, WAV, AIFF, XRNI, etc.)")
+	rootCmd.Flags().StringVarP(&inputDir, "input-dir", "d", "", "Scan directory for supported slice files")
 	rootCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Output WAV path (single input only)")
 	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "e", "", "Output directory for batch conversions")
 	rootCmd.Flags().BoolVarP(&recursive, "recursive", "r", false, "Recurse subdirectories (requires --input-dir)")
