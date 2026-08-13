@@ -61,7 +61,7 @@ jobs:
       - name: Checksums
         run: |
           cd build/releases
-          sha256sum *.tar.gz *.zip >> CHECKSUMS.txt
+          sha256sum chirashi-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}.* > CHECKSUMS.txt
 
       - name: Upload
         uses: softprops/action-gh-release@v2
