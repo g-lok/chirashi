@@ -51,7 +51,7 @@ Always use bit-by-bit bitstream comparison against known-good SDK files when mod
 
 **Logged**: 2026-08-12T12:15:00Z
 **Priority**: medium
-**Status**: pending
+**Status**: promoted
 **Area**: backend
 
 ### Summary
@@ -70,3 +70,28 @@ Verify XPM compatibility with MPC Software 2.11+.
 - Source: feature_expansion
 - Related Files: internal/engine/encoder_sfz.go, internal/engine/encoder_ds.go, internal/engine/encoder_xpm.go
 - Tags: sfz, mpchardware, decentsampler
+- Promoted: README.md, AGENTS.md
+
+---
+
+## [LRN-20260813-CI] correction
+
+**Logged**: 2026-08-13T20:25:00Z
+**Priority**: high
+**Status**: promoted
+**Area**: infra
+
+### Summary
+Fix Windows-specific glob failure in release checksum generation
+
+### Details
+GitHub Actions release workflow failed on Windows matrix job because `sha256sum *.tar.gz *.zip` attempted to match both extensions. Windows only produces `.zip`, causing `*.tar.gz` to fail the shell command.
+
+### Suggested Action
+Use single wildcard `sha256sum filename.*` or ignore missing files in CI scripts.
+
+### Metadata
+- Source: ci_failure
+- Related Files: .github/workflows/release.yml
+- Tags: github-actions, ci, windows
+- Promoted: AGENTS.md
