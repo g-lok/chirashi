@@ -6,7 +6,8 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 
 - **Cross-format** — convert between any supported input/output pair
 - **Pure Go** — no external dependencies, no native SDKs required
-- **REX/RX2/RCY** support via pure Go implementation (bit-perfect encoding)
+- **REX/RX2/RCY** support via robust pure Go implementation (bit-perfect encoding)
+- **Fault-tolerant batch conversion** — reports failed files and continues processing
 - Mono downmix, resampling, slice limiting, BPM override, BPM filename prefix
 
 ## Table of Contents
@@ -28,6 +29,9 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 - [Elektron Octatrack (OT)](#elektron-octatrack-ot)
 - [Teenage Engineering OP-1](#teenage-engineering-op-1)
 - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
+- [Akai MPC Program (XPM)](#akai-mpc-program-xpm)
+- [SFZ Mapping](#sfz-mapping)
+- [Decent Sampler](#decent-sampler)
 - [Elektron multi-sample (EL)](#elektron-multi-sample-el)
 - [Elektron Digitakt II (DT2PST)](#elektron-digitakt-ii-dt2pst)
 - [REX / RX2 / RCY](#rex--rx2--rcy)
@@ -133,7 +137,7 @@ chirashi simpler.adv -o output.aif
 | `--output-dir` | `-e` | — | Output directory for batch |
 | `--format` | `-f` | `wav` | Output format (see below) |
 | `--bit-rate` | `-b` | 16 | Bit depth: 8, 16, or 24 |
-| `--sample-rate` | `-s` | source | Output sample rate in Hz (1k–1M) |
+| `--sample-rate` | `-s` | source | Output sample rate in Hz (1k–1M). Auto-detects source rate if omitted. |
 | `--mono` | `-m` | false | Downmix to mono |
 | `--mono-mode` | — | `sum` | `sum`, `left`, `right`, `difference`, `dual-detect` |
 | `--tempo` | `-t` | 0 | Override tempo in BPM (0 = use original, clamped to 20-450 range) |
@@ -191,6 +195,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Polyend Tracker | `.pti` | All | pure Go parser |
 | Octatrack | `.ot` | All | reads `.ot` sidecar + companion `.wav` |
 | OP-XY | `.xy` | All | ZIP container (patch.json + per-slice WAVs) |
+| Akai MPC | `.xpm` | All | reads Akai MPC drum programs |
 | WAV | `.wav` | All | reads cue markers for slices |
 | AIFF | `.aif`, `.aiff` | All | reads MARK chunk for slices |
 | Apple CAF | `.caf` | All | Apple Loop format, reads beat markers for slices |
@@ -332,6 +337,41 @@ ZIP container (`.preset.zip`) with `patch.json` + per-slice WAV files. The JSON 
 chirashi loop.rx2 -l 24 -f xy -o xy_kit.preset.zip
 ```
 
+### Akai MPC Program (XPM)
+
+Modern XML-based drum programs (`.xpm`) for **MPC Live, One, X, and Force**. Maps up to 128 slices to Pads/Instruments. Designed for high-speed hardware workflows.
+
+- Produces `.xpm` sidecar + companion `.wav`
+- Maps slice points directly to MPC pad start/end parameters
+- Compatible with MPC Software 2.11+ and standalone OS
+
+```bash
+chirashi loop.rx2 -f xpm -o mpc_kit.xpm
+```
+
+### SFZ Mapping
+
+The **SFZ** format is an open standard for instrument mapping. chirashi produces a plain WAV file containing all audio data, with a `.sfz` sidecar that defines slice regions using `offset` and `end` opcodes.
+
+- Preserves original audio in a single file
+- Widely supported by free and commercial samplers
+- Ideal for high-fidelity archival of sliced loops
+
+```bash
+chirashi loop.rx2 -f sfz -o mapping.sfz
+```
+
+### Decent Sampler
+
+XML-based preset format (`.dspreset`) for the free **Decent Sampler** plugin. Maps regions using standard XML attributes.
+
+- Produces `.dspreset` file + companion `.wav`
+- Cross-platform support (iOS, Windows, Mac, Linux)
+
+```bash
+chirashi loop.rx2 -f ds -o decent_kit.dspreset
+```
+
 ### Elektron multi-sample (EL)
 
 Two-file output: a `.wav` companion and a `_slices.txt` configuration file. The text format (TOML-like) defines key-zones, velocity layers, and sample slot mappings. Each slice is assigned to a sequential MIDI note starting at C1 (note 24).
@@ -379,25 +419,29 @@ The `rex2/` package implements a complete REX2 parser and encoder in pure Go:
 
 1. **IFF chunk parsing**: REX2 is an IFF-based format. The decoder reads chunks sequentially:
    - `CAT REX2` — file container
-   - `HEAD` — file header with format version
-   - `CREI` — creator info (name, copyright, URL, email)
-   - `TRSH` — transient sensitivity settings
-   - `SINF` — sample info (sample rate, bit depth, channels)
-   - `GLOB` — global data (BPM, time signature, grid)
-   - `SLCE` — slice table (PPQ positions, mute/locked states)
-   - `SDAT` — DWOP-compressed audio data
+   - `HEAD` — file header with format version and internal checksums
+   - `CREI` — creator info (name, copyright, URL, email, and free text)
+   - `TRSH` — transient sensitivity, decay, and freeze settings
+   - `SINF` — sample info (channels, sample rate, bit depth, total frames, loop points)
+   - `GLOB` — global data (BPM, time signature, grid, analysis sensitivity, gate sensitivity)
+   - `SLCE` — slice table (sample start, sample length, PPQ positions, and visibility flags)
+   - `SDAT` / `DWOP` — compressed audio data
 
-2. **DWOP decompression**: The audio data uses DPCM (differential pulse-code modulation) with variable-length bit stuffing:
-   - Stereo: left channel stored directly, right channel as delta from left
-   - Predictor state maintained per-channel for decode
-   - Variable-length codes (1-5 bits per sample) based on magnitude
+2. **DWOP compression**: The audio data uses a proprietary DPCM (differential pulse-code modulation) scheme with variable-length bit stuffing:
+   - **Predictor State**: Decodes samples using a 4-state predictor machine. 
+   - **Stereo Coupling**: Stereo frames are encoded as `Left` followed by a `Delta` channel.
+   - **Bit-Perfect Symmetry**: The encoder exactly inverts the decoder's predictor logic to achieve bit-parity with files produced by the original SDK.
+   - **Word Alignment**: SDAT payloads are zero-padded to 32-bit boundaries to ensure compatibility with strict REX parsers.
 
-3. **Slice filtering**: SLCE entries have visibility flags (normal, muted, locked). `isVisibleSliceBoundary()` filters based on state:
-   - State 0 (normal): visible
-   - State 1 (muted): hidden from `isVisibleSliceBoundary` but still counted in slice count
-   - State 2 (locked): visible
+3. **Slice filtering**: REX2 files often contain many more "potential" slices than are visible in a DAW. chirashi applies analysis sensitivity and gate logic to determine visible boundaries:
+   - **Analysis Sensitivity**: Filters slices based on the "Visible Range" threshold stored in the file.
+   - **Gate Sensitivity**: Calculates minimum slice lengths to prevent "machine gun" triggers on noisy transients.
+   - **Visibility Flags**: Respects manual "Muted" and "Locked" states from ReCycle.
 
-4. **REX1 detection**: REX1 (`CAT REX\x01`) uses inline sample positions without SLCE. Returns error (no REX1 write support yet).
+4. **Robustness**: 
+   - **Header Guard**: Explicitly detects `<!DOCTYPE html>` to identify failed web downloads.
+   - **Fault Tolerance**: Batch mode continues processing remaining files if one is corrupt.
+   - **REX1 detection**: Detects legacy `CAT REX\x01` files (write support planned).
 
 ```bash
 chirashi loop.rx2 -s 44100 -b 16 -o loop.wav      # REX2 → WAV
