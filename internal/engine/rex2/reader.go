@@ -13,6 +13,7 @@ var (
 	ErrInvalidTempo  = errors.New("rex2: invalid tempo")
 	ErrFileTooNew    = errors.New("rex2: file version too new")
 	ErrUnknownFormat = errors.New("rex2: unknown file format")
+	ErrIsHTML        = errors.New("rex2: file appears to be HTML (failed download)")
 )
 
 const kMaxTotalFrames = 3600 * 192000
@@ -57,6 +58,10 @@ func Decode(data []byte) (*REX2File, error) {
 
 	if string(data[0:4]) == "FORM" && string(data[8:12]) == "AIFF" {
 		return decodeLegacyAIFF(data)
+	}
+
+	if len(data) >= 15 && string(data[0:15]) == "<!DOCTYPE html>" {
+		return nil, ErrIsHTML
 	}
 
 	if string(data[0:4]) != "CAT " {

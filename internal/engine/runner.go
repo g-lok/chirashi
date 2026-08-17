@@ -83,14 +83,18 @@ func runPipeline(cfg PipelineConfig) error {
 			}
 
 			err = processFileBuffer(data, t, cfg)
+			if err != nil {
+				errCh <- fmt.Errorf("%s: %w", filepath.Base(t), err)
+				return
+			}
 
-			errCh <- err
+			errCh <- nil
 		}(target)
 	}
 
 	for range targets {
 		if err := <-errCh; err != nil {
-			fmt.Printf("Error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		}
 	}
 
