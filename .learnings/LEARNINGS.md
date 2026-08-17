@@ -6,6 +6,33 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ---
 
+## [LRN-20260817-BATCH] best_practice
+
+**Logged**: 2026-08-17T17:00:00Z
+**Priority**: high
+**Status**: promoted
+**Area**: backend
+
+### Summary
+Implemented fault-tolerant batch processing for directory conversion
+
+### Details
+When processing thousands of files (e.g., Rhythm Lab collection), a single corrupted or redirected download (HTML page) can halt the entire pipeline. 
+1. **Runner Fault Tolerance**: Wrapped file processing in a loop that logs errors to `os.Stderr` and continues.
+2. **Explicit Format Validation**: Added explicit detection for `<!DOCTYPE html>` to identify failed web downloads early.
+3. **Contextual Errors**: Enhanced errors to include the source filename in batch output.
+
+### Suggested Action
+Always prefer "log and continue" for batch CLI operations unless the error is systemic (e.g., Disk Full).
+
+### Metadata
+- Source: user_feedback
+- Related Files: internal/engine/runner.go, internal/engine/rex2/reader.go
+- Tags: batch-processing, robustness, fault-tolerance
+- Promoted: AGENTS.md, CHANGELOG.md
+
+---
+
 ## [LRN-20260812-REX-CODE] insight
 
 **Logged**: 2026-08-12T12:05:00Z

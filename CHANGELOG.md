@@ -5,6 +5,43 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-17
+
+### Added
+- **Robust Batch Processing**: The runner now reports specific filenames that fail to convert and continues processing the rest of the directory instead of aborting the entire batch.
+- **HTML Imposter Detection**: The REX2 decoder now explicitly detects `<!DOCTYPE html>` headers, identifying failed/redirected downloads that were saved with audio extensions.
+
+## [1.2.2] - 2026-08-13
+
+### Fixed
+- **Filename Sanitization**: Collapses multiple underscores and spaces in output filenames for cleaner results.
+
+## [1.2.1] - 2026-08-13
+
+### Fixed
+- **Trailing Underscores**: Removed trailing underscores from output filenames when no slice splitting occurs.
+
+## [1.2.0] - 2026-08-13
+
+### Added
+- **CLI Documentation**: Improved help text and directory scanning documentation.
+
+## [1.1.0] - 2026-08-13
+
+### Added
+- **The Open Ecosystem Update**:
+  - **SFZ Export**: High-fidelity mapping to companion WAV files.
+  - **Decent Sampler Export**: Modern XML-based .dspreset output.
+  - **Akai MPC XPM Export**: XML drum programs for MPC Live/One/X.
+  - **Sample Rate Auto-Detection**: Uses source sample rate by default if `-s` is omitted.
+  - **Batch Audio Input**: Full support for WAV, AIFF, and CAF files as batch sources.
+
+## [1.0.0] - 2026-08-12
+
+### Added
+- **Bit-Perfect DWOP Encoder**: Reverse-engineered predictor symmetry and bitstream alignment for REX2 encoding.
+- **REX2 Output Enabled**: Successfully re-enabled `.rx2` output with bit-parity verification against original SDK.
+
 ## [0.5.0] - 2026-06-26
 
 ### Added

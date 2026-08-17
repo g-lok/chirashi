@@ -26,19 +26,23 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - `rex2/encoder.go`: Produces valid CAT REX2 files with DWOP compression
 - `rex2/legacy.go`: PTI and OT legacy format readers (same SliceInfo output)
 
-**REX2 encoder status (v1.0.0):**
-- Produces valid IFF structure (22-byte GLOB matches original)
-- DWOP compression matches original SDK bit-for-bit on tested files
-- ReCycle validation verified via bitstream parity
-- **REX2 OUTPUT ENABLED**
-- Internal roundtrip (encode→decode) passes PCM validation
+**REX2 encoder status (v1.3.0):**
+- Bit-perfect DWOP encoding achieved via predictor symmetry (inversion of applyPredictor logic).
+- Stereo coupling (L + Delta) bitstream alignment corrected.
+- Word alignment (4-byte padding) enforced for SDAT chunks.
+- SLCE chunks sorted by sample start position.
+- **REX2 OUTPUT ENABLED** and verified via ReCycle bitstream parity.
+
+**v1.3.0: Robust Batch Release**
+- **Fault Tolerance**: Runner logs per-file errors to Stderr and continues batch jobs.
+- **Header Guard**: Explicit `<!DOCTYPE html>` detection to catch failed web downloads.
 
 **v1.1.0: The Open Ecosystem Update**
-- **SFZ Export**: Plain WAV + .sfz sidecar mapping.
-- **Decent Sampler Export**: Plain WAV + .dspreset sidecar mapping.
-- **Akai MPC XPM Export**: Modern XML-based drum programs for MPC Live/One/X.
-- **Sample Rate Auto-Detection**: Automatically uses source sample rate if not specified via -s.
-- **WAV/AIFF/CAF Input**: Full support for reading sliced audio formats as batch input.
+- SFZ Export: Plain WAV + .sfz sidecar mapping.
+- Decent Sampler Export: Plain WAV + .dspreset sidecar mapping.
+- Akai MPC XPM Export: Modern XML-based drum programs for MPC Live/One/X.
+- Sample Rate Auto-Detection: Automatically uses source sample rate if not specified via -s.
+- WAV/AIFF/CAF Input: Full support for reading sliced audio formats as batch input.
 
 ### REX2 encoder fix details (v0.5.1)
 - **Predictor residual inversion**: Corrected case 2-4 logic to sequentially subtract accumulated deltas, matching the decoder's symmetric addition.
@@ -140,7 +144,7 @@ Run with `go test ./...` — no CGo, no zig, no special flags.
 - Legacy: PTI/OT format parsing
 - Edge: single-slice, stereo, various bit depths, RCY
 - DWOP: test individual state transitions, bit stuffing
-- **NOTE**: REX2 encoder produces incorrect DWOP output — needs debugging before re-enabling
+- **NOTE**: REX2 encoder produces bit-perfect DWOP output since v1.0.0. Use `v1.3.0` for robust batch processing.
 
 ## Workflow
 
