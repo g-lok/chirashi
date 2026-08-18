@@ -441,7 +441,7 @@ The `rex2/` package implements a complete REX2 parser and encoder in pure Go:
 4. **Robustness**: 
    - **Header Guard**: Explicitly detects `<!DOCTYPE html>` to identify failed web downloads.
    - **Fault Tolerance**: Batch mode continues processing remaining files if one is corrupt.
-   - **REX1 detection**: Detects legacy `CAT REX\x01` files (write support planned).
+   - **REX1 detection**: Detects legacy `CAT REX\x01` files (read-only; write support not planned).
 
 ```bash
 chirashi loop.rx2 -s 44100 -b 16 -o loop.wav      # REX2 → WAV
