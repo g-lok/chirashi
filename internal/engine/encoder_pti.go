@@ -7,7 +7,7 @@ import (
 	"math"
 )
 
-func EncodePTI(w io.Writer, extraction *SliceExtraction) error {
+func EncodePTI(w io.Writer, extraction *SliceExtraction, name string) error {
 	if extraction == nil || len(extraction.Interleaved) == 0 {
 		return fmt.Errorf("cannot encode PTI: extraction data is empty")
 	}
@@ -52,8 +52,17 @@ func EncodePTI(w io.Writer, extraction *SliceExtraction) error {
 	header[19] = 0
 	header[20] = 0
 
-	name := []byte("REXConverter")
-	copy(header[21:51], name)
+	if name == "" {
+		name = "chirashi"
+	}
+	nameBytes := []byte(name)
+	for i := 0; i < 30; i++ {
+		if i < len(nameBytes) {
+			header[21+i] = nameBytes[i]
+		} else {
+			header[21+i] = 0
+		}
+	}
 
 	binary.LittleEndian.PutUint32(header[56:60], 0)
 	binary.LittleEndian.PutUint32(header[60:64], uint32(sampleLen))

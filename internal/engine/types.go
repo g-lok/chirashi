@@ -52,4 +52,5 @@ type PipelineConfig struct {
 	InputFormat     string // Force input format (auto-detect by extension if unset)
 	SamplePathMode  string // Sample path style in XML output: relative, absolute, library
 	BpmPrefix       bool   // Prepend detected BPM to output filename (e.g., "128-SourceName.wav")
+	Category        string // Organizational tag for hardware folders (e.g. OP-1 original_folder)
 }

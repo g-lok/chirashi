@@ -6,6 +6,30 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ---
 
+## [LRN-20260817-OP1] insight
+
+**Logged**: 2026-08-17T19:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+OP-1 original_folder constraints and behavior
+
+### Details
+The `original_folder` field in OP-1 metadata is used to group patches on the device. Hardware limits:
+- **Length**: 10 characters max.
+- **Characters**: Alphanumeric and basic separators only.
+- **Behavior**: If missing or invalid, the device uses standard factory categories. 
+`chirashi` now defaults to `chirashi-sliced` and provides a `--category` flag with automatic sanitization.
+
+### Metadata
+- Source: research
+- Related Files: internal/engine/encoder_op1.go, internal/engine/runner.go
+- Tags: op-1, metadata, categorization
+
+---
+
 ## [LRN-20260817-DT2] insight
 
 **Logged**: 2026-08-17T18:00:00Z

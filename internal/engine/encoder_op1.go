@@ -4,9 +4,10 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 )
 
-func EncodeOP1AIF(w io.Writer, extraction *SliceExtraction) error {
+func EncodeOP1AIF(w io.Writer, extraction *SliceExtraction, name, category string) error {
 	if extraction == nil || len(extraction.Interleaved) == 0 {
 		return fmt.Errorf("cannot encode OP-1 AIFF: extraction data is empty")
 	}
@@ -26,7 +27,7 @@ func EncodeOP1AIF(w io.Writer, extraction *SliceExtraction) error {
 	numFrames := totalSamples / channels
 	dataSize := uint32(numFrames * int(blockAlign))
 
-	jsonData := buildOP1Metadata(extraction)
+	jsonData := buildOP1Metadata(extraction, name, category)
 	applSize := uint32(0x1004)
 	applPad := int(applSize) - len(jsonData) - 8
 
@@ -131,6 +132,12 @@ func EncodeOP1AIF(w io.Writer, extraction *SliceExtraction) error {
 	return writeSSND()
 }
 
+func escapeJSON(s string) string {
+	s = strings.ReplaceAll(s, "\\", "\\\\")
+	s = strings.ReplaceAll(s, "\"", "\\\"")
+	return s
+}
+
 func aiffSampleRate(rate int) [10]byte {
 	var result [10]byte
 
@@ -160,10 +167,17 @@ func aiffSampleRate(rate int) [10]byte {
 	return result
 }
 
-func buildOP1Metadata(extraction *SliceExtraction) string {
+func buildOP1Metadata(extraction *SliceExtraction, name, category string) string {
 	numSlices := len(extraction.CuePoints)
 	if numSlices > 24 {
 		numSlices = 24
+	}
+
+	if name == "" {
+		name = "chirashi"
+	}
+	if category == "" {
+		category = "chirashi-sliced"
 	}
 
 	scaleFactor := 2147483646.0 / (44100.0 * 20.0)
@@ -171,9 +185,9 @@ func buildOP1Metadata(extraction *SliceExtraction) string {
 		scaleFactor = 2147483646.0 / (44100.0 * 12.0)
 	}
 
-	json := `{"name":"REXConverter","type":"drum","drum_version":2,"stereo":` +
+	json := `{"name":"` + escapeJSON(name) + `","type":"drum","drum_version":2,"stereo":` +
 		fmt.Sprintf(`%v`, extraction.Metadata.Channels == 2) +
-		`,"octave":0,"original_folder":"chirashi","mtime":1682173750,` +
+		`,"octave":0,"original_folder":"` + escapeJSON(category) + `","mtime":1682173750,` +
 		`"fx_active":false,"fx_type":"delay","fx_params":[8000,8000,8000,8000,8000,8000,8000,8000],` +
 		`"lfo_active":false,"lfo_type":"tremolo","lfo_params":[16000,16000,16000,16000,16000,16000,16000,16000],` +
 		`"dyna_env":[0,8192,0,8192,0,0,0,0],`

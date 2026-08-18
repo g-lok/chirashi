@@ -236,6 +236,10 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 		}
 	}
 
+	if cfg.Category != "chirashi-sliced" && cfg.Format != "aif-op1" {
+		fmt.Fprintf(os.Stderr, "warning: --category flag is only supported by 'aif-op1' format (OP-1). Ignoring value.\n")
+	}
+
 	var wg sync.WaitGroup
 	errCh := make(chan error, totalFiles)
 
@@ -279,6 +283,7 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 }
 
 func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg PipelineConfig, idx, totalFiles int) error {
+	payloadName := filepath.Base(basePath)
 	switch cfg.Format {
 	case "wav":
 		path := basePath + ".wav"
@@ -304,7 +309,7 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 			return err
 		}
 		defer f.Close()
-		return EncodePTI(f, extraction)
+		return EncodePTI(f, extraction, payloadName)
 
 	case "ot":
 		wavPath := basePath + ".wav"
@@ -375,7 +380,8 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 			return err
 		}
 		defer f.Close()
-		return EncodeOP1AIF(f, extraction)
+		sanCategory := sanitizeCategory(cfg.Category)
+		return EncodeOP1AIF(f, extraction, payloadName, sanCategory)
 
 	case "caf":
 		path := basePath + ".caf"
@@ -425,7 +431,7 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 			return err
 		}
 		defer ft.Close()
-		return EncodeEL(ft, extraction)
+		return EncodeEL(ft, extraction, payloadName)
 
 	case "dt2pst":
 		path := basePath + ".dt2pst"
@@ -770,6 +776,29 @@ func sanitizeName(name string, limit int) string {
 	}
 	if result == "" {
 		result = "output"
+	}
+	return result
+}
+
+func sanitizeCategory(name string) string {
+	sanitized := make([]byte, 0, len(name))
+	for i := 0; i < len(name); i++ {
+		c := name[i]
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' {
+			sanitized = append(sanitized, c)
+		} else if c == ' ' {
+			sanitized = append(sanitized, '_')
+		} else {
+			sanitized = append(sanitized, '_')
+		}
+	}
+	result := string(sanitized)
+	if len(result) > 10 {
+		result = result[:10]
+	}
+	result = strings.Trim(result, "_")
+	if result == "" {
+		result = "chirashi"
 	}
 	return result
 }

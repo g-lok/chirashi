@@ -33,6 +33,10 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - SLCE chunks sorted by sample start position.
 - **REX2 OUTPUT ENABLED** and verified via ReCycle bitstream parity.
 
+**v1.4.0: Metadata & Categorization Update**
+- **Categorization**: Added `--category` flag to set hardware folder tags (OP-1 `original_folder`).
+- **Clean Metadata**: Removed all legacy "REXConverter" and "SOLE DISPLAY" artifacts. Encoders now use sanitized source filenames for internal instrument names.
+
 **v1.3.0: Robust Batch Release**
 - **Fault Tolerance**: Runner logs per-file errors to Stderr and continues batch jobs.
 - **Header Guard**: Explicit `<!DOCTYPE html>` detection to catch failed web downloads.

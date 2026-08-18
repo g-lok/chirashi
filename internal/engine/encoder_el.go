@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type errWriter struct {
@@ -24,9 +25,13 @@ func (ew *errWriter) writef(format string, args ...interface{}) {
 	_, ew.err = fmt.Fprintf(ew.w, format, args...)
 }
 
-func EncodeEL(w io.Writer, extraction *SliceExtraction) error {
+func EncodeEL(w io.Writer, extraction *SliceExtraction, name string) error {
 	if extraction == nil || len(extraction.Interleaved) == 0 {
 		return fmt.Errorf("cannot encode EL: extraction data is empty")
+	}
+
+	if name == "" {
+		name = "chirashi"
 	}
 
 	numSlices := len(extraction.CuePoints)
@@ -40,7 +45,7 @@ func EncodeEL(w io.Writer, extraction *SliceExtraction) error {
 	ew := &errWriter{w: w}
 	ew.write("# ELEKTRON MULTI-SAMPLE MAPPING FORMAT\n")
 	ew.write("version = 0\n")
-	ew.write("name = 'REXConverter'\n\n")
+	ew.writef("name = '%s'\n\n", strings.ReplaceAll(name, "'", "\\'"))
 
 	for i := 0; i < numSlices; i++ {
 		pitch := 24 + i
