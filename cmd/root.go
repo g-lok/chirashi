@@ -9,7 +9,7 @@ import (
 )
 
 // Set at build time via -ldflags -X
-var version = "v1.4.2"
+var version = "v1.4.3"
 
 var (
 	inputFiles      []string

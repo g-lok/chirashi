@@ -5,6 +5,21 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-08-17
+
+### Fixed
+- **Version Parity**: Synchronized hardcoded version strings and build flags to ensure `--version` correctly reports `v1.4.3`.
+
+## [1.4.2] - 2026-08-17
+
+### Fixed
+- **REX2 Strict Slicing**: Defaulted REX2 decoding to 'Strict' mode, treating every marker in the SLCE table as a hard slice. This ensures parity with Ableton Simpler and hardware samplers (like M8) that ignore internal transient sensitivity.
+- **OP-1 Category**: Corrected default folder name to `chirashi` (8 chars) to fit the 10-character hardware limit.
+- **Dynamic Metadata**: Replaced remaining `REXConverter` branding artifacts with the actual source filename in PTI, OP-1, and EL encoders.
+
+### Added
+- **--rex-sensitivity flag**: Re-enables the 'smart' adaptive transient filtering based on analysis sensitivity for REX2 files.
+
 ## [1.4.1] - 2026-08-17
 
 ### Fixed
