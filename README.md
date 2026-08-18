@@ -148,6 +148,8 @@ chirashi simpler.adv -o output.aif
 | `--preserve` | `-p` | false | Preserve directory structure (with `--input-dir`) |
 | `--quiet` | `-q` | false | Suppress progress |
 | `--verbose` | `-v` | false | Debug output |
+| `--category` | `-c` | `chirashi` | Folder tag for hardware (OP-1). Max 10 chars. |
+| `--rex-sensitivity` | — | false | Use REX2 adaptive transient detection instead of strict markers |
 | `--library-path` | — | — | Ableton User Library path |
 | `--input-format` | — | auto | Force input format (override auto-detect) |
 | `--sample-path-mode` | — | `relative` | Sample path style in XML (reserved) |
@@ -185,6 +187,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Format | Extensions | Platform | Notes |
 |--------|------------|----------|-------|
 | REX2 | `.rx2` | All | Pure Go parser and encoder (bit-perfect) |
+| Akai MPC | `.xpm` | All | Reads Akai MPC drum programs |
 | REX | `.rex` | All | Pure Go parser (legacy) |
 | RCY | `.rcy` | All | Pure Go parser (ReCycle document) |
 | Renoise XRNI | `.xrni` | All | ZIP container, pure Go parser |
