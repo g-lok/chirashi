@@ -6,6 +6,29 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ---
 
+## [LRN-20260817-DT2] insight
+
+**Logged**: 2026-08-17T18:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+Removed hardcoded name artifact in DT2 binary template
+
+### Details
+Reverse-engineered binary formats often contain strings from the original reference file. In `internal/engine/encoder_dt2pst.go`, the sequence `"SOLE DISPLAY"` was present in the bytecode header. While technically overwritten by dynamic logic, it created confusion and potential for partial name leakage if the overwrite logic failed.
+
+### Suggested Action
+Replace string literals in binary templates with `0x00` padding to clarify they are variable slots.
+
+### Metadata
+- Source: code_audit
+- Related Files: internal/engine/encoder_dt2pst.go
+- Tags: dt2, digitakt, binary-format
+
+---
+
 ## [LRN-20260817-BATCH] best_practice
 
 **Logged**: 2026-08-17T17:00:00Z

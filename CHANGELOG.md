@@ -5,6 +5,11 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-08-17
+
+### Fixed
+- **DT2 Encoder Metadata**: Removed a hardcoded "SOLE DISPLAY" name artifact from the Digitakt II binary preset template. The preset name is now correctly derived from the input filename.
+
 ## [1.3.0] - 2026-08-17
 
 ### Added
