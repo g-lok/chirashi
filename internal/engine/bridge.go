@@ -20,7 +20,7 @@ func CloseEngine() error {
 }
 
 func RenderLoopPreview(fileData []byte, targetSampleRate, tempo int) (*SliceExtraction, error) {
-	f, err := rex2.Decode(fileData)
+	f, err := rex2.DecodeOptions(fileData, true)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +82,8 @@ func RenderLoopPreview(fileData []byte, targetSampleRate, tempo int) (*SliceExtr
 	}, nil
 }
 
-func RenderSlicesPreview(fileData []byte, targetSampleRate, tempo int) ([]SliceExtraction, error) {
-	f, err := rex2.Decode(fileData)
+func RenderSlicesPreview(fileData []byte, targetSampleRate, tempo int, strict bool) ([]SliceExtraction, error) {
+	f, err := rex2.DecodeOptions(fileData, strict)
 	if err != nil {
 		return nil, err
 	}

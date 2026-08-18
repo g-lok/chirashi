@@ -37,6 +37,7 @@ type REX2File struct {
 	SliceFlags []int32
 	Creator    CreatorInfo
 
+	StrictSlices         bool // If true, only use locked/selected/region markers
 	rawSlices            []rawSliceEntry
 	processingGain       int
 	transientEnabled     bool
@@ -52,6 +53,10 @@ type REX2File struct {
 }
 
 func Decode(data []byte) (*REX2File, error) {
+	return DecodeOptions(data, true)
+}
+
+func DecodeOptions(data []byte, strict bool) (*REX2File, error) {
 	if len(data) < 12 {
 		return nil, ErrInvalidSize
 	}
@@ -79,6 +84,7 @@ func Decode(data []byte) (*REX2File, error) {
 			TimeSigDen:    4,
 			BitDepth:      16,
 		},
+		StrictSlices:     strict,
 		processingGain:   1000,
 		transientEnabled: true,
 		transientStretch: 0x28,
@@ -345,13 +351,17 @@ func rex2FilterPoints(sensitivity uint8) uint16 {
 }
 
 func (f *REX2File) isVisibleSliceBoundary(s rawSliceEntry) bool {
-	if s.state == 1 {
+	if s.state == 1 { // muted
 		return false
 	}
-	if s.sampleLength > 1 {
+	if f.StrictSlices {
+		// Strict parity mode: Use every marker in the table as a hard slice
 		return true
 	}
-	if s.state == 2 {
+	if s.sampleLength > 1 { // region
+		return true
+	}
+	if s.state == 2 || s.selectedFlag { // locked or selected
 		return true
 	}
 	return s.points > rex2FilterPoints(f.analysisSensitivity)
@@ -424,9 +434,9 @@ func (f *REX2File) finalizeSlices() {
 			derived = 1
 		}
 
-		if f.gateSensitivity == 0 || out[i].sampleLength <= 1 {
+		if f.StrictSlices || f.gateSensitivity == 0 || out[i].sampleLength <= 1 {
 			out[i].sampleLength = derived
-			if f.gateSensitivity != 0 && gatedFrames > 0 && out[i].sampleLength > gatedFrames {
+			if !f.StrictSlices && f.gateSensitivity != 0 && gatedFrames > 0 && out[i].sampleLength > gatedFrames {
 				out[i].sampleLength = gatedFrames
 			}
 		} else if derived > 1 && out[i].sampleLength > derived {

@@ -34,6 +34,7 @@ var (
 	samplePathMode  string
 	bpmPrefix       bool
 	category        string
+	rexSensitivity  bool
 )
 
 var rootCmd = &cobra.Command{
@@ -124,6 +125,7 @@ mono downmix, and slice grouping.`,
 			SamplePathMode:  samplePathMode,
 			BpmPrefix:       bpmPrefix,
 			Category:        category,
+			RexSensitivity:  rexSensitivity,
 		}
 
 		return engine.ExecuteConversionPipeline(pipelineConfig)
@@ -162,4 +164,5 @@ func init() {
 	rootCmd.Flags().StringVar(&samplePathMode, "sample-path-mode", "relative", "Sample path style in XML output: relative, absolute, library")
 	rootCmd.Flags().BoolVar(&bpmPrefix, "bpm-prefix", false, "Prepend detected BPM to output filename (e.g. 128-SourceName.wav). Ignored when -o is used without -l.")
 	rootCmd.Flags().StringVarP(&category, "category", "c", "chirashi", "Organizational tag for hardware folders (e.g. OP-1 original_folder). Max 10 chars.")
+	rootCmd.Flags().BoolVar(&rexSensitivity, "rex-sensitivity", false, "Use REX2 adaptive transient detection instead of strict markers")
 }

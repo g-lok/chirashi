@@ -124,7 +124,7 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			slices = []SliceExtraction{*loop}
 			cfg.SliceLimit = 0 // prevent groupSlices from splitting cue points
 		} else {
-			slices, err = RenderSlicesPreview(fileData, cfg.SampleRate, sdkTempo)
+			slices, err = RenderSlicesPreview(fileData, cfg.SampleRate, sdkTempo, !cfg.RexSensitivity)
 			if err != nil {
 				return fmt.Errorf("slices render failed: %w", err)
 			}
