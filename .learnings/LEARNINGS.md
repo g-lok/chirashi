@@ -21,7 +21,7 @@ The `original_folder` field in OP-1 metadata is used to group patches on the dev
 - **Length**: 10 characters max.
 - **Characters**: Alphanumeric and basic separators only.
 - **Behavior**: If missing or invalid, the device uses standard factory categories. 
-`chirashi` now defaults to `chirashi-sliced` and provides a `--category` flag with automatic sanitization.
+`chirashi` now defaults to `chirashi` and provides a `--category` flag with automatic sanitization.
 
 ### Metadata
 - Source: research

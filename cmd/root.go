@@ -9,7 +9,7 @@ import (
 )
 
 // Set at build time via -ldflags -X
-var version = "v1.4.0"
+var version = "v1.4.1"
 
 var (
 	inputFiles      []string
@@ -161,5 +161,5 @@ func init() {
 	rootCmd.Flags().StringVar(&inputFormat, "input-format", "", "Force input format (auto-detect by extension if unset)")
 	rootCmd.Flags().StringVar(&samplePathMode, "sample-path-mode", "relative", "Sample path style in XML output: relative, absolute, library")
 	rootCmd.Flags().BoolVar(&bpmPrefix, "bpm-prefix", false, "Prepend detected BPM to output filename (e.g. 128-SourceName.wav). Ignored when -o is used without -l.")
-	rootCmd.Flags().StringVarP(&category, "category", "c", "chirashi-sliced", "Organizational tag for hardware folders (e.g. OP-1 original_folder). Max 10 chars.")
+	rootCmd.Flags().StringVarP(&category, "category", "c", "chirashi", "Organizational tag for hardware folders (e.g. OP-1 original_folder). Max 10 chars.")
 }

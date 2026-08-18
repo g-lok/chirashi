@@ -5,10 +5,15 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-08-17
+
+### Fixed
+- **Category Default**: Changed default `--category` from `chirashi-sliced` to `chirashi` to comply with the 10-character limit of the OP-1 hardware filesystem.
+
 ## [1.4.0] - 2026-08-17
 
 ### Added
-- **`--category` / `-c` flag**: Overrides the organizational folder name for hardware samplers that support grouping (currently OP-1). Defaults to `chirashi-sliced`.
+- **`--category` / `-c` flag**: Overrides the organizational folder name for hardware samplers that support grouping (currently OP-1). Defaults to `chirashi`.
 - **Dynamic Metadata**: All instrument formats (PTI, OP-1, EL) now use the source filename for internal instrument names instead of legacy hardcoded "REXConverter" or "chirashi" strings.
 
 ### Fixed

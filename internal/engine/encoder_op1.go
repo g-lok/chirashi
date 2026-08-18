@@ -177,7 +177,7 @@ func buildOP1Metadata(extraction *SliceExtraction, name, category string) string
 		name = "chirashi"
 	}
 	if category == "" {
-		category = "chirashi-sliced"
+		category = "chirashi"
 	}
 
 	scaleFactor := 2147483646.0 / (44100.0 * 20.0)

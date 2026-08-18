@@ -236,7 +236,7 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 		}
 	}
 
-	if cfg.Category != "chirashi-sliced" && cfg.Format != "aif-op1" {
+	if cfg.Category != "chirashi" && cfg.Format != "aif-op1" {
 		fmt.Fprintf(os.Stderr, "warning: --category flag is only supported by 'aif-op1' format (OP-1). Ignoring value.\n")
 	}
 
