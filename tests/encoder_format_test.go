@@ -10,7 +10,29 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/g-lok/chirashi/internal/engine"
 )
+
+func TestSanitizeCategory(t *testing.T) {
+	cases := []struct {
+		input    string
+		expected string
+	}{
+		{"normal", "normal"},
+		{"too long name here", "too_long_n"},
+		{"spaces and $symbols$", "spaces_and"},
+		{"", "chirashi"},
+		{"___", "chirashi"},
+	}
+
+	for _, c := range cases {
+		got := engine.SanitizeCategory(c.input)
+		if got != c.expected {
+			t.Errorf("SanitizeCategory(%q) = %q; want %q", c.input, got, c.expected)
+		}
+	}
+}
 
 func hasBinary() bool {
 	_, err := os.Stat(binaryPath)

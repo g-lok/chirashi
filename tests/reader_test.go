@@ -414,7 +414,7 @@ func TestPTIReader_TIFormat(t *testing.T) {
 	}
 
 	var encBuf bytes.Buffer
-	if err := engine.EncodePTI(&encBuf, ext); err != nil {
+	if err := engine.EncodePTI(&encBuf, ext, "test_name"); err != nil {
 		t.Fatalf("EncodePTI: %v", err)
 	}
 	ptiData := encBuf.Bytes()
@@ -464,7 +464,7 @@ func TestPTIReader_TIFormat_NoSlices(t *testing.T) {
 	}
 
 	var encBuf bytes.Buffer
-	if err := engine.EncodePTI(&encBuf, ext); err != nil {
+	if err := engine.EncodePTI(&encBuf, ext, "test_name"); err != nil {
 		t.Fatalf("EncodePTI: %v", err)
 	}
 

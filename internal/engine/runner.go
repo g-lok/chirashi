@@ -380,7 +380,7 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 			return err
 		}
 		defer f.Close()
-		sanCategory := sanitizeCategory(cfg.Category)
+		sanCategory := SanitizeCategory(cfg.Category)
 		return EncodeOP1AIF(f, extraction, payloadName, sanCategory)
 
 	case "caf":
@@ -780,7 +780,7 @@ func sanitizeName(name string, limit int) string {
 	return result
 }
 
-func sanitizeCategory(name string) string {
+func SanitizeCategory(name string) string {
 	sanitized := make([]byte, 0, len(name))
 	for i := 0; i < len(name); i++ {
 		c := name[i]
