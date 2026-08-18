@@ -488,7 +488,7 @@ func TestEncodeXY_RoundTrip(t *testing.T) {
 func TestEncodeOP1_Basic(t *testing.T) {
 	ext := testExtraction()
 	var buf bytes.Buffer
-	if err := EncodeOP1AIF(&buf, ext); err != nil {
+	if err := EncodeOP1AIF(&buf, ext, "test_name", "test_cat"); err != nil {
 		t.Fatalf("EncodeOP1AIF: %v", err)
 	}
 	data := buf.Bytes()
@@ -515,7 +515,7 @@ func TestEncodeOP1_Basic(t *testing.T) {
 func TestEncodeEL_Basic(t *testing.T) {
 	ext := testExtraction()
 	var buf bytes.Buffer
-	if err := EncodeEL(&buf, ext); err != nil {
+	if err := EncodeEL(&buf, ext, "test_name"); err != nil {
 		t.Fatalf("EncodeEL: %v", err)
 	}
 	output := buf.String()
@@ -536,7 +536,7 @@ func TestEncodeEL_Basic(t *testing.T) {
 func TestEncodePTI_Basic(t *testing.T) {
 	ext := testExtraction()
 	var buf bytes.Buffer
-	if err := EncodePTI(&buf, ext); err != nil {
+	if err := EncodePTI(&buf, ext, "test_name"); err != nil {
 		t.Fatalf("EncodePTI: %v", err)
 	}
 	data := buf.Bytes()
