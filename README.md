@@ -34,6 +34,9 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
 - [Decent Sampler](#decent-sampler)
 - [Elektron multi-sample (EL)](#elektron-multi-sample-el)
 - [Elektron Digitakt II (DT2PST)](#elektron-digitakt-ii-dt2pst)
+- [Yamaha TX16W](#yamaha-tx16w)
+- [Amiga IFF 8SVX / 16SV](#amiga-iff-8svx--16sv)
+- [ProTracker MOD](#protracker-mod)
 - [REX / RX2 / RCY](#rex--rx2--rcy)
 - [Architecture](#architecture)
 - [Building from source](#building-from-source)
@@ -237,17 +240,20 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 
 ### WAV + cue markers
 
-Default `wav` output produces a single WAV with optional `cue ` and `adtl` chunks when the input has slice markers. Tailored for **Dirtywave M8** — a strict WAV parser that rejects unexpected chunks after `data`:
+Standard PCM WAV reader and writer with full support for high-precision and multi-channel formats.
 
-- Written in one sequential pass with pre-computed offsets
-- Only `fmt `, optional `cue ` / `adtl`, and `data` chunks
-- **No** `LIST`/`INFO` chunks (M8 doesn't handle them)
-- `dwChunkStart` / `dwBlockStart` = 0, `fccChunk` = `"data"`, `dwSampleOffset` = frame index
-- Other DAWs (Ableton, Logic, Reaper) load the same WAV fine
+- **`WAVE_FORMAT_EXTENSIBLE` (65534)**: Full support for reading extensible WAV headers, automatically detecting underlying PCM or IEEE Float subformats via GUID.
+- **IEEE Float (3)**: Supports reading 32-bit and 64-bit floating-point audio.
+- **Cue Markers**: Default `wav` output produces a single WAV with optional `cue ` and `adtl` chunks when the input has slice markers. Tailored for **Dirtywave M8** — a strict WAV parser that rejects unexpected chunks after `data`:
+  - Written in one sequential pass with pre-computed offsets
+  - Only `fmt `, optional `cue ` / `adtl`, and `data` chunks
+  - **No** `LIST`/`INFO` chunks (M8 doesn't handle them)
+  - `dwChunkStart` / `dwBlockStart` = 0, `fccChunk` = `"data"`, `dwSampleOffset` = frame index
+  - Other DAWs (Ableton, Logic, Reaper) load the same WAV fine
 
 ```bash
 chirashi loop.rx2 -o sliced.wav    # WAV with M8-compatible cue markers
-chirashi loop.rx2 -n -o flat.wav   # plain WAV without slice markers
+chirashi high_res.wav -b 16 -o 16bit.wav # Downsample extensible/float to 16-bit PCM
 ```
 
 ### AIFF / AIFF-C
@@ -307,7 +313,8 @@ output/
 
 ZIP container with `Instrument.xml` + sample WAV(s). The XML contains `<SliceMarker>` elements for slice positions. Reads multi-sample instruments and exports all slices with their markers. Writes a single ZIP with embedded PCM.
 
-**Limits:** 128 max slices per file.
+- **Centralized WAV Support**: Supports all WAV subtypes (PCM, Float, Extensible) embedded in the instrument container.
+- **Limits**: 128 max slices per file.
 
 ### Polyend Tracker (PTI)
 
@@ -319,9 +326,10 @@ No hard slice limit — the PTI format supports up to 48 slice slots. Single-sli
 
 Two-file output: a `.wav` companion (standard WAV with cue markers) and a `.ot` sidecar containing slice boundary positions. The sidecar uses `FORM DPS1` IFF-style structure with 64 slice slots, each storing start/end byte offsets and loop flags.
 
-**Input:** Requires both `.ot` and companion `.wav`. chirashi looks for a same-named `.wav` next to the `.ot` file. Use `--input-format ot` if chirashi doesn't auto-detect.
+**Input:** Requires both `.ot` and companion `.wav`. chirashi looks for a same-named `.wav` next to the `.ot` file.
 
-**Limits:** 64 max slices per file.
+- **Advanced WAV Detection**: Companion WAV reader now supports high-precision extensible and floating-point formats.
+- **Limits**: 64 max slices per file.
 
 ### Teenage Engineering OP-1
 
@@ -411,6 +419,44 @@ ZIP container (`.dt2pst`) with `manifest.json` + sample WAV + binary preset. Sli
 
 ```bash
 chirashi loop.rx2 -f dt2pst -o kit.dt2pst
+```
+
+### Yamaha TX16W
+
+Hardware sample format for the Yamaha TX16W sampler (Typhoon OS).
+
+- **12-bit Mono**: Hardware strictly uses 12-bit packed PCM (3 bytes per sample pair).
+- **Supported Rates**: Clamps to nearest hardware rate: 16.6 kHz, 33.3 kHz, or 50 kHz.
+- **Extensions**: Supports `.w01`..`.w32` and `.txw` files.
+- **Automatic Downmix**: Inputs are automatically converted to mono and resampled to the closest hardware rate when using `-f tx16w`.
+
+```bash
+chirashi loop.rx2 -f tx16w -o KICK.txw
+```
+
+### Amiga IFF 8SVX / 16SV
+
+Classic Amiga Interchange File Format (IFF) audio, compatible with **Amigo Sampler** and retro hardware.
+
+- **8SVX**: 8-bit signed mono PCM.
+- **16SV**: 16-bit big-endian mono PCM.
+- **Loop Support**: Preserves one-shot and repeat length parameters from the `VHDR` chunk.
+- **Extensions**: `.8svx`, `.16sv`, and `.iff`.
+
+```bash
+chirashi sample.wav -f 8svx -o AMIGA.8svx
+```
+
+### ProTracker MOD
+
+Input-only reader for extracting samples from classic Amiga ProTracker modules.
+
+- **Sample Extraction**: Automatically extracts all embedded 8-bit samples (up to 31 slots).
+- **Clean Audio**: Strips tracker sequence data, effects, and transpositions to produce clean individual samples.
+- **Batch Ready**: Best used with `-e` to export all module samples to a directory.
+
+```bash
+chirashi music.mod -f wav -e ./extracted_samples
 ```
 
 ### REX / RX2 / RCY
