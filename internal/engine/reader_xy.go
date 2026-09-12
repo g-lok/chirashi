@@ -100,15 +100,16 @@ func (r *XYReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, e
 				continue
 			}
 
-			sr, ch, bd, err := readWAVFullFmt(wavData)
+			sr, ch, bd, isFloat, err := readWAVFullFmt(wavData)
 			if err != nil {
-				continue
+				return nil, err
 			}
 			pcmRaw, err := readWAVData(wavData)
 			if err != nil {
-				continue
+				return nil, err
 			}
-			pcm, err := decodeWAVSamples(pcmRaw, bd)
+			pcm, err := decodeWAVSamples(pcmRaw, bd, isFloat)
+
 			if err != nil {
 				continue
 			}

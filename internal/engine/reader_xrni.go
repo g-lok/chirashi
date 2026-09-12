@@ -301,76 +301,19 @@ func decodeFLAC(data []byte) ([]float32, int, int, error) {
 }
 
 func decodeWAVPCM(data []byte) ([]float32, int, int, error) {
-	if len(data) < 12 {
-		return nil, 0, 0, fmt.Errorf("wav: too short")
-	}
-	if string(data[:4]) != "RIFF" || string(data[8:12]) != "WAVE" {
-		return nil, 0, 0, fmt.Errorf("wav: invalid header")
+	sampleRate, channels, bitDepth, isFloat, err := readWAVFullFmt(data)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("wav: %w", err)
 	}
 
-	var sampleRate, channels, bitDepth int
-	var pcmData []byte
-
-	pos := 12
-	for pos+8 <= len(data) {
-		chunkID := string(data[pos : pos+4])
-		chunkSize := int(binary.LittleEndian.Uint32(data[pos+4 : pos+8]))
-		if chunkSize > len(data)-pos-8 {
-			break
-		}
-		chunkData := data[pos+8 : pos+8+chunkSize]
-
-		switch chunkID {
-		case "fmt ":
-			if len(chunkData) < 16 {
-				return nil, 0, 0, fmt.Errorf("wav: fmt chunk too small")
-			}
-			audioFormat := binary.LittleEndian.Uint16(chunkData[0:2])
-			if audioFormat != 1 && audioFormat != 3 {
-				return nil, 0, 0, fmt.Errorf("wav: unsupported format %d", audioFormat)
-			}
-			channels = int(binary.LittleEndian.Uint16(chunkData[2:4]))
-			sampleRate = int(binary.LittleEndian.Uint32(chunkData[4:8]))
-			bitDepth = int(binary.LittleEndian.Uint16(chunkData[14:16]))
-		case "data":
-			pcmData = chunkData
-		}
-
-		if chunkSize%2 == 1 {
-			chunkSize++
-		}
-		pos += 8 + chunkSize
+	pcmData, err := readWAVData(data)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("wav: %w", err)
 	}
 
-	if pcmData == nil || sampleRate == 0 {
-		return nil, 0, 0, fmt.Errorf("wav: missing fmt or data chunk")
-	}
-
-	totalSamples := len(pcmData) / (bitDepth / 8)
-	pcm := make([]float32, totalSamples)
-
-	switch bitDepth {
-	case 8:
-		for i := range pcm {
-			pcm[i] = float32(int(pcmData[i])-128) / 128.0
-		}
-	case 16:
-		for i := 0; i < len(pcmData)-1; i += 2 {
-			val := int16(binary.LittleEndian.Uint16(pcmData[i:]))
-			pcm[i/2] = float32(val) / 32768.0
-		}
-	case 24:
-		for i := 0; i < len(pcmData)-2; i += 3 {
-			val := int32(int8(pcmData[i+2]))<<16 | int32(pcmData[i+1])<<8 | int32(pcmData[i])
-			pcm[i/3] = float32(val) / 8388608.0
-		}
-	case 32:
-		for i := 0; i < len(pcmData)-3; i += 4 {
-			val := int32(binary.LittleEndian.Uint32(pcmData[i:]))
-			pcm[i/4] = float32(val) / 2147483648.0
-		}
-	default:
-		return nil, 0, 0, fmt.Errorf("wav: unsupported bit depth %d", bitDepth)
+	pcm, err := decodeWAVSamples(pcmData, bitDepth, isFloat)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("wav: %w", err)
 	}
 
 	return pcm, sampleRate, channels, nil

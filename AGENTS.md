@@ -46,7 +46,7 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - Decent Sampler Export: Plain WAV + .dspreset sidecar mapping.
 - Akai MPC XPM Export: Modern XML-based drum programs for MPC Live/One/X.
 - Sample Rate Auto-Detection: Automatically uses source sample rate if not specified via -s.
-- WAV/AIFF/CAF Input: Full support for reading sliced audio formats as batch input.
+- **WAV Input**: Full support for standard PCM, IEEE Float (audioFormat 3), and `WAVE_FORMAT_EXTENSIBLE` (audioFormat 65534). Supports 8/16/24/32-bit integer and 32/64-bit float.
 
 ### REX2 encoder fix details (v0.5.1)
 - **Predictor residual inversion**: Corrected case 2-4 logic to sequentially subtract accumulated deltas, matching the decoder's symmetric addition.

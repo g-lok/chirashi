@@ -199,7 +199,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Octatrack | `.ot` | All | reads `.ot` sidecar + companion `.wav` |
 | OP-XY | `.xy` | All | ZIP container (patch.json + per-slice WAVs) |
 | Akai MPC | `.xpm` | All | reads Akai MPC drum programs |
-| WAV | `.wav` | All | reads cue markers for slices |
+| WAV | `.wav` | All | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
 | AIFF | `.aif`, `.aiff` | All | reads MARK chunk for slices |
 | Apple CAF | `.caf` | All | Apple Loop format, reads beat markers for slices |
 | Digitakt II | `.dt2pst` | All | ZIP container (manifest.json + WAV + binary preset) |

@@ -3,6 +3,7 @@ package chirashi_test
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -616,25 +617,124 @@ func TestOTReader_RealSampleFile(t *testing.T) {
 	}
 }
 
+func TestWAVReader_ExtensiblePCM(t *testing.T) {
+	buildExtensibleWAV := func(sampleRate, channels, bitDepth int, subFormat uint32, samples []int16) []byte {
+		buf := &bytes.Buffer{}
+		bytesPerSample := bitDepth / 8
+		dataSize := len(samples) * bytesPerSample
+		cbSize := uint16(22)
+		riffSize := uint32(36 + 2 + 22 + 8 + dataSize)
+
+		buf.WriteString("RIFF")
+		binary.Write(buf, binary.LittleEndian, riffSize)
+		buf.WriteString("WAVE")
+
+		buf.WriteString("fmt ")
+		binary.Write(buf, binary.LittleEndian, uint32(40))
+		binary.Write(buf, binary.LittleEndian, uint16(65534)) // WAVE_FORMAT_EXTENSIBLE
+		binary.Write(buf, binary.LittleEndian, uint16(channels))
+		binary.Write(buf, binary.LittleEndian, uint32(sampleRate))
+		binary.Write(buf, binary.LittleEndian, uint32(sampleRate*channels*bytesPerSample))
+		binary.Write(buf, binary.LittleEndian, uint16(channels*bytesPerSample))
+		binary.Write(buf, binary.LittleEndian, uint16(bitDepth))
+		binary.Write(buf, binary.LittleEndian, cbSize)
+		binary.Write(buf, binary.LittleEndian, uint16(bitDepth)) // wValidBitsPerSample
+		binary.Write(buf, binary.LittleEndian, uint32(0))      // dwChannelMask
+		// SubFormat GUID: Data1 (4B), Data2 (2B), Data3 (2B), Data4 (8B)
+		binary.Write(buf, binary.LittleEndian, subFormat)
+		buf.Write([]byte{0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71})
+
+		buf.WriteString("data")
+		binary.Write(buf, binary.LittleEndian, uint32(dataSize))
+		for _, s := range samples {
+			binary.Write(buf, binary.LittleEndian, s)
+		}
+		return buf.Bytes()
+	}
+
+	wavData := buildExtensibleWAV(44100, 1, 16, 1, []int16{1000, 2000, 3000})
+	slices, err := engine.DetectReader(".wav").Read(wavData, 44100)
+	if err != nil {
+		t.Fatalf("Extensible PCM read failed: %v", err)
+	}
+	if len(slices) != 1 {
+		t.Fatalf("expected 1 slice, got %d", len(slices))
+	}
+	if len(slices[0].Interleaved) != 3 {
+		t.Fatalf("expected 3 samples, got %d", len(slices[0].Interleaved))
+	}
+}
+
+func TestWAVReader_ExtensibleFloat(t *testing.T) {
+	buildExtensibleFloatWAV := func(sampleRate, channels int, samples []float32) []byte {
+		buf := &bytes.Buffer{}
+		bitDepth := 32
+		bytesPerSample := 4
+		dataSize := len(samples) * bytesPerSample
+		cbSize := uint16(22)
+		riffSize := uint32(36 + 2 + 22 + 8 + dataSize)
+
+		buf.WriteString("RIFF")
+		binary.Write(buf, binary.LittleEndian, riffSize)
+		buf.WriteString("WAVE")
+
+		buf.WriteString("fmt ")
+		binary.Write(buf, binary.LittleEndian, uint32(40))
+		binary.Write(buf, binary.LittleEndian, uint16(65534)) // WAVE_FORMAT_EXTENSIBLE
+		binary.Write(buf, binary.LittleEndian, uint16(channels))
+		binary.Write(buf, binary.LittleEndian, uint32(sampleRate))
+		binary.Write(buf, binary.LittleEndian, uint32(sampleRate*channels*bytesPerSample))
+		binary.Write(buf, binary.LittleEndian, uint16(channels*bytesPerSample))
+		binary.Write(buf, binary.LittleEndian, uint16(bitDepth))
+		binary.Write(buf, binary.LittleEndian, cbSize)
+		binary.Write(buf, binary.LittleEndian, uint16(bitDepth))
+		binary.Write(buf, binary.LittleEndian, uint32(0))
+		binary.Write(buf, binary.LittleEndian, uint32(3)) // KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+		buf.Write([]byte{0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71})
+
+		buf.WriteString("data")
+		binary.Write(buf, binary.LittleEndian, uint32(dataSize))
+		for _, s := range samples {
+			binary.Write(buf, binary.LittleEndian, math.Float32bits(s))
+		}
+		return buf.Bytes()
+	}
+
+	wavData := buildExtensibleFloatWAV(44100, 1, []float32{0.1, 0.5, -0.2})
+	slices, err := engine.DetectReader(".wav").Read(wavData, 44100)
+	if err != nil {
+		t.Fatalf("Extensible Float read failed: %v", err)
+	}
+	if len(slices) != 1 {
+		t.Fatalf("expected 1 slice, got %d", len(slices))
+	}
+	if math.Abs(float64(slices[0].Interleaved[0]-0.1)) > 0.00001 {
+		t.Errorf("sample mismatch: got %f, want 0.1", slices[0].Interleaved[0])
+	}
+}
+
 func buildMinimalWAV() []byte {
 	buf := &bytes.Buffer{}
 	buf.WriteString("RIFF")
 	binary.Write(buf, binary.LittleEndian, uint32(36+4))
 	buf.WriteString("WAVE")
+
 	buf.WriteString("fmt ")
 	binary.Write(buf, binary.LittleEndian, uint32(16))
 	binary.Write(buf, binary.LittleEndian, uint16(1))
 	binary.Write(buf, binary.LittleEndian, uint16(1))
 	binary.Write(buf, binary.LittleEndian, uint32(44100))
-	binary.Write(buf, binary.LittleEndian, uint32(88200))
+	binary.Write(buf, binary.LittleEndian, uint32(44100*2))
 	binary.Write(buf, binary.LittleEndian, uint16(2))
 	binary.Write(buf, binary.LittleEndian, uint16(16))
+
 	buf.WriteString("data")
 	binary.Write(buf, binary.LittleEndian, uint32(4))
 	binary.Write(buf, binary.LittleEndian, int16(100))
 	binary.Write(buf, binary.LittleEndian, int16(200))
 	return buf.Bytes()
 }
+
 
 func findTestXRNI() string {
 	candidates := []string{

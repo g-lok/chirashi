@@ -115,17 +115,18 @@ func readOTDPS1WithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceExt
 		return nil, fmt.Errorf("ot (FORM DPS1): no valid slice slots found")
 	}
 
-	sampleRate, channels, bitDepth, err := readWAVFullFmt(wavData)
+	sampleRate, channels, bitDepth, isFloat, err := readWAVFullFmt(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("ot (FORM DPS1): companion WAV parse: %w", err)
+		return nil, fmt.Errorf("wav: %w", err)
 	}
 
 	pcmRaw, err := readWAVData(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("ot (FORM DPS1): companion WAV data: %w", err)
+		return nil, fmt.Errorf("wav: %w", err)
 	}
 
-	pcm, err := decodeWAVSamples(pcmRaw, bitDepth)
+	pcm, err := decodeWAVSamples(pcmRaw, bitDepth, isFloat)
+
 	if err != nil {
 		return nil, fmt.Errorf("ot (FORM DPS1): companion WAV decode: %w", err)
 	}
@@ -206,17 +207,18 @@ func readOTLegacyWithWAV(otData, wavData []byte, targetSampleRate int) ([]SliceE
 		}
 	}
 
-	sampleRate, channels, bitDepth, err := readWAVFullFmt(wavData)
+	sampleRate, channels, bitDepth, isFloat, err := readWAVFullFmt(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("ot (legacy format): companion WAV parse: %w", err)
+		return nil, fmt.Errorf("wav: %w", err)
 	}
 
 	pcmRaw, err := readWAVData(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("ot (legacy format): companion WAV data: %w", err)
+		return nil, fmt.Errorf("wav: %w", err)
 	}
 
-	pcm, err := decodeWAVSamples(pcmRaw, bitDepth)
+	pcm, err := decodeWAVSamples(pcmRaw, bitDepth, isFloat)
+
 	if err != nil {
 		return nil, fmt.Errorf("ot (legacy format): companion WAV decode: %w", err)
 	}

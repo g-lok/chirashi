@@ -5,6 +5,17 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-09-11
+
+### Added
+- **WAVE_FORMAT_EXTENSIBLE Support**: Full support for reading high-precision and multi-channel WAV files using the `65534` (`0xFFFE`) format tag.
+- **IEEE Float Decoding**: Support for decoding 32-bit and 64-bit IEEE Float WAV files.
+- **Improved WAV Parser**: Standardized WAV parsing across all reader modules (XRNI, OT, DT2PST, OP-XY).
+
+### Fixed
+- **XRNI WAV Compatibility**: Refactored XRNI reader to support all WAV subtypes (PCM, Float, Extensible) embedded in `.xrni` containers.
+- **OT Companion WAV Support**: Enhanced Octatrack companion WAV detection to handle extensible and floating-point formats.
+
 ## [1.4.3] - 2026-08-17
 
 ### Fixed

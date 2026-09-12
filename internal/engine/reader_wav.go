@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 )
 
 type WAVReader struct{}
@@ -14,7 +15,7 @@ func (r *WAVReader) Probe(data []byte) (*RexMetadata, error) {
 	if string(data[:4]) != "RIFF" || string(data[8:12]) != "WAVE" {
 		return nil, fmt.Errorf("wav: invalid header")
 	}
-	sampleRate, channels, err := readWAVFmt(data)
+	sampleRate, channels, _, _, err := readWAVFullFmt(data)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ func (r *WAVReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, 
 		return nil, fmt.Errorf("wav: invalid RIFF/WAVE header")
 	}
 
-	sampleRate, channels, bitDepth, err := readWAVFullFmt(data)
+	sampleRate, channels, bitDepth, isFloat, err := readWAVFullFmt(data)
 	if err != nil {
 		return nil, fmt.Errorf("wav: %w", err)
 	}
@@ -45,7 +46,7 @@ func (r *WAVReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, 
 
 	cuePoints := readWAVCues(data)
 
-	pcm, err := decodeWAVSamples(pcmData, bitDepth)
+	pcm, err := decodeWAVSamples(pcmData, bitDepth, isFloat)
 	if err != nil {
 		return nil, fmt.Errorf("wav: %w", err)
 	}
@@ -126,11 +127,11 @@ func (r *WAVReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, 
 }
 
 func readWAVFmt(data []byte) (sampleRate, channels int, err error) {
-	sr, ch, _, err := readWAVFullFmt(data)
+	sr, ch, _, _, err := readWAVFullFmt(data)
 	return sr, ch, err
 }
 
-func readWAVFullFmt(data []byte) (sampleRate, channels, bitDepth int, err error) {
+func readWAVFullFmt(data []byte) (sampleRate, channels, bitDepth int, isFloat bool, err error) {
 	pos := 12
 	for pos+8 <= len(data) {
 		chunkID := string(data[pos : pos+4])
@@ -140,23 +141,40 @@ func readWAVFullFmt(data []byte) (sampleRate, channels, bitDepth int, err error)
 		}
 		if chunkID == "fmt " {
 			if chunkSize < 16 {
-				return 0, 0, 0, fmt.Errorf("fmt chunk too small")
+				return 0, 0, 0, false, fmt.Errorf("fmt chunk too small")
 			}
 			audioFormat := binary.LittleEndian.Uint16(data[pos+8 : pos+10])
-			if audioFormat != 1 && audioFormat != 3 {
-				return 0, 0, 0, fmt.Errorf("unsupported audio format %d (only PCM=1, IEEE float=3)", audioFormat)
-			}
 			channels = int(binary.LittleEndian.Uint16(data[pos+10 : pos+12]))
 			sampleRate = int(binary.LittleEndian.Uint32(data[pos+12 : pos+16]))
 			bitDepth = int(binary.LittleEndian.Uint16(data[pos+22 : pos+24]))
-			return sampleRate, channels, bitDepth, nil
+
+			if audioFormat == 1 {
+				isFloat = false
+			} else if audioFormat == 3 {
+				isFloat = true
+			} else if audioFormat == 65534 {
+				if chunkSize < 40 {
+					return 0, 0, 0, false, fmt.Errorf("fmt extensible chunk too small")
+				}
+				subFormat := binary.LittleEndian.Uint32(data[pos+24+8 : pos+24+12])
+				if subFormat == 1 {
+					isFloat = false
+				} else if subFormat == 3 {
+					isFloat = true
+				} else {
+					return 0, 0, 0, false, fmt.Errorf("unsupported extensible subformat %d", subFormat)
+				}
+			} else {
+				return 0, 0, 0, false, fmt.Errorf("unsupported audio format %d (only PCM=1, IEEE float=3, Extensible=65534)", audioFormat)
+			}
+			return sampleRate, channels, bitDepth, isFloat, nil
 		}
 		if chunkSize%2 == 1 {
 			chunkSize++
 		}
 		pos += 8 + chunkSize
 	}
-	return 0, 0, 0, fmt.Errorf("no fmt chunk found")
+	return 0, 0, 0, false, fmt.Errorf("no fmt chunk found")
 }
 
 func readWAVData(data []byte) ([]byte, error) {
@@ -230,9 +248,28 @@ func readWAVCues(data []byte) []WavCueMarker {
 	return nil
 }
 
-func decodeWAVSamples(pcmData []byte, bitDepth int) ([]float32, error) {
+func decodeWAVSamples(pcmData []byte, bitDepth int, isFloat bool) ([]float32, error) {
 	totalSamples := len(pcmData) / (bitDepth / 8)
 	pcm := make([]float32, totalSamples)
+
+	if isFloat {
+		switch bitDepth {
+		case 32:
+			for i := 0; i < len(pcmData)-3; i += 4 {
+				bits := binary.LittleEndian.Uint32(pcmData[i:])
+				pcm[i/4] = math.Float32frombits(bits)
+			}
+			return pcm, nil
+		case 64:
+			for i := 0; i < len(pcmData)-7; i += 8 {
+				bits := binary.LittleEndian.Uint64(pcmData[i:])
+				pcm[i/8] = float32(math.Float64frombits(bits))
+			}
+			return pcm, nil
+		default:
+			return nil, fmt.Errorf("unsupported float bit depth: %d", bitDepth)
+		}
+	}
 
 	switch bitDepth {
 	case 8:

@@ -142,17 +142,18 @@ func (r *DT2PSTReader) Read(data []byte, targetSampleRate int) ([]SliceExtractio
 		return nil, fmt.Errorf("dt2pst: no sample WAV found in zip")
 	}
 
-	sr, ch, bd, err := readWAVFullFmt(wavData)
+	sr, ch, bd, isFloat, err := readWAVFullFmt(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("dt2pst: wav parse: %w", err)
+		return nil, err
 	}
 
 	pcmRaw, err := readWAVData(wavData)
 	if err != nil {
-		return nil, fmt.Errorf("dt2pst: wav data: %w", err)
+		return nil, err
 	}
 
-	pcm, err := decodeWAVSamples(pcmRaw, bd)
+	pcm, err := decodeWAVSamples(pcmRaw, bd, isFloat)
+
 	if err != nil {
 		return nil, fmt.Errorf("dt2pst: wav decode: %w", err)
 	}

@@ -169,3 +169,26 @@ Use single wildcard `sha256sum filename.*` or ignore missing files in CI scripts
 - Related Files: .github/workflows/release.yml
 - Tags: github-actions, ci, windows
 - Promoted: AGENTS.md
+
+---
+
+## [LRN-20260911-WAVEX] insight
+
+**Logged**: 2026-09-11T20:55:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+Implemented WAVE_FORMAT_EXTENSIBLE (65534) and IEEE Float (3) support
+
+### Details
+WAV files using the extensible header (`0xFFFE`) require parsing the 16-byte `SubFormat` GUID to determine the actual encoding.
+1. **Format Detection**: Updated `readWAVFullFmt` to extract the underlying format code from `SubFormat.Data1`.
+2. **Float Decoding**: Added support for 32-bit and 64-bit IEEE Float formats using `math.Float32frombits` and `math.Float64frombits`.
+3. **Consistency**: Standardized all reader modules (`xrni`, `ot`, `dt2pst`, `xy`) to use the centralized WAV helpers, ensuring consistent support for all WAV subtypes regardless of container.
+
+### Metadata
+- Source: feature_request
+- Related Files: internal/engine/reader_wav.go, internal/engine/reader_xrni.go
+- Tags: wav, audio-formats, extensible-header, float-audio
