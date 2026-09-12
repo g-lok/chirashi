@@ -202,7 +202,9 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | WAV | `.wav` | All | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
 | AIFF | `.aif`, `.aiff` | All | reads MARK chunk for slices |
 | Apple CAF | `.caf` | All | Apple Loop format, reads beat markers for slices |
-| Digitakt II | `.dt2pst` | All | ZIP container (manifest.json + WAV + binary preset) |
+| Yamaha TX16W | `.w01`..`.w32`, `.txw` | All | 12-bit packed mono PCM (Typhoon OS) |
+| Amiga IFF | `.8svx`, `.16sv`, `.iff` | All | classic Amiga 8-bit/16-bit mono |
+| ProTracker MOD | `.mod` | All | extracts all embedded 8-bit samples |
 
 ### Output formats
 
@@ -221,6 +223,9 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Akai MPC program | `xpm` | `.xpm` + `.wav` | 128 | Modern XML program (MPC Live/One/X) |
 | Elektron multi-sample | `el` | `_slices.txt` + `.wav` | 64 | TOML-like config + companion WAV |
 | Digitakt II | `dt2pst` | `.dt2pst` | 64 | ZIP with manifest.json + WAV + binary preset |
+| Yamaha TX16W | `tx16w` | `.txw` | — | 12-bit mono (Typhoon OS) |
+| Amiga 8SVX | `8svx` | `.8svx` | — | classic Amiga 8-bit mono |
+| Amiga 16SV | `16sv` | `.16sv` | — | 16-bit big-endian mono |
 | Apple Loop CAF | `caf` | `.caf` | — | 44100 Hz only; Apple Loop UUID metadata |
 | Ableton ADV | `adv` | `.adv` + `.wav` | — | Simpler XML preset + per-slice WAVs |
 | Ableton ALS | `als` | `.als` + `.wav` | — | Live Set XML + per-slice WAVs |

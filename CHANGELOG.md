@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] - 2026-09-11
 
 ### Added
+- **Vintage Sampler Support**:
+  - **Yamaha TX16W**: Read and write support for `.w01`..`.w32` and `.txw` formats (12-bit packed mono PCM).
+  - **Amiga IFF 8SVX/16SV**: Read and write support for classic Amiga 8-bit and 16-bit mono formats.
+  - **ProTracker MOD**: Added input reader for extracting 8-bit samples directly from tracker modules.
 - **WAVE_FORMAT_EXTENSIBLE Support**: Full support for reading high-precision and multi-channel WAV files using the `65534` (`0xFFFE`) format tag.
 - **IEEE Float Decoding**: Support for decoding 32-bit and 64-bit IEEE Float WAV files.
 - **Improved WAV Parser**: Standardized WAV parsing across all reader modules (XRNI, OT, DT2PST, OP-XY).

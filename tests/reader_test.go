@@ -713,6 +713,167 @@ func TestWAVReader_ExtensibleFloat(t *testing.T) {
 	}
 }
 
+func buildSynthetic8SVX(sampleRate int, samples []int8) []byte {
+	buf := &bytes.Buffer{}
+	bodySize := len(samples)
+	totalSize := 4 + 4 + 4 + 4 + 4 + 20 + 4 + 4 + bodySize
+	if bodySize%2 == 1 {
+		totalSize++
+	}
+
+	buf.WriteString("FORM")
+	binary.Write(buf, binary.BigEndian, uint32(totalSize-8))
+	buf.WriteString("8SVX")
+
+	buf.WriteString("VHDR")
+	binary.Write(buf, binary.BigEndian, uint32(20))
+	binary.Write(buf, binary.BigEndian, uint32(len(samples)))
+	binary.Write(buf, binary.BigEndian, uint32(0))
+	binary.Write(buf, binary.BigEndian, uint32(0))
+	binary.Write(buf, binary.BigEndian, uint16(sampleRate))
+	buf.Write([]byte{1, 0})
+	binary.Write(buf, binary.BigEndian, uint32(65536))
+
+	buf.WriteString("BODY")
+	binary.Write(buf, binary.BigEndian, uint32(bodySize))
+	for _, s := range samples {
+		buf.WriteByte(byte(s))
+	}
+	if bodySize%2 == 1 {
+		buf.WriteByte(0)
+	}
+	return buf.Bytes()
+}
+
+func buildSyntheticTX16W(sampleRateCode byte, samples []int16) []byte {
+	buf := &bytes.Buffer{}
+	header := make([]byte, 32)
+	copy(header[:6], "LM8953")
+	header[22] = 0xC9
+	header[23] = sampleRateCode
+	
+	attackLen := len(samples)
+	header[24] = byte(attackLen & 0xFF)
+	header[25] = byte((attackLen >> 8) & 0xFF)
+	header[26] = byte((attackLen >> 16) & 0x01)
+	
+	buf.Write(header)
+
+	for i := 0; i < len(samples)-1; i += 2 {
+		s1 := samples[i]
+		s2 := samples[i+1]
+		b1 := byte(s1 & 0xFF)
+		b2 := byte(((s1 >> 8) & 0x0F) | ((s2 << 4) & 0xF0))
+		b3 := byte((s2 >> 4) & 0xFF)
+		buf.Write([]byte{b1, b2, b3})
+	}
+	return buf.Bytes()
+}
+
+func Test8SVXReader_Synthetic(t *testing.T) {
+	data := buildSynthetic8SVX(16000, []int8{10, 20, 30, 40})
+	reader := &engine.IFFReader{}
+	samples, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("8SVX synthetic read failed: %v", err)
+	}
+	if len(samples) != 1 || len(samples[0].Interleaved) != 4 {
+		t.Errorf("expected 4 samples, got %d", len(samples[0].Interleaved))
+	}
+	if samples[0].Metadata.SampleRate != 16000 {
+		t.Errorf("expected 16000 Hz, got %d", samples[0].Metadata.SampleRate)
+	}
+}
+
+func TestTX16WReader_Synthetic(t *testing.T) {
+	data := buildSyntheticTX16W(1, []int16{100, 200, 300, 400})
+	reader := &engine.TX16WReader{}
+	samples, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("TX16W synthetic read failed: %v", err)
+	}
+	if len(samples) != 1 || len(samples[0].Interleaved) != 4 {
+		t.Errorf("expected 4 samples, got %d", len(samples[0].Interleaved))
+	}
+	if samples[0].Metadata.SampleRate != 33333 {
+		t.Errorf("expected 33333 Hz, got %d", samples[0].Metadata.SampleRate)
+	}
+}
+
+func TestMODReader_Synthetic(t *testing.T) {
+	buf := make([]byte, 2108+1024)
+	copy(buf[1080:1084], "M.K.")
+	// Sample 1: 512 words = 1024 bytes
+	binary.BigEndian.PutUint16(buf[20+22:20+24], 512)
+	// Sample 1 data
+	for i := 0; i < 1024; i++ {
+		buf[2108+i] = byte(i % 256)
+	}
+
+	reader := &engine.MODReader{}
+	samples, err := reader.Read(buf, 44100)
+	if err != nil {
+		t.Fatalf("MOD synthetic read failed: %v", err)
+	}
+	if len(samples) < 1 {
+		t.Fatalf("expected at least 1 sample")
+	}
+	if len(samples[0].Interleaved) != 1024 {
+		t.Errorf("expected 1024 samples, got %d", len(samples[0].Interleaved))
+	}
+}
+
+func TestMODReader_RealFile(t *testing.T) {
+	path := filepath.Join("testdata", "paketti", "test.mod")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Skip("skipping real file test: test.mod not found")
+	}
+
+	reader := &engine.MODReader{}
+	samples, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("MOD read failed: %v", err)
+	}
+	if len(samples) == 0 {
+		t.Errorf("expected samples extracted from MOD")
+	}
+}
+
+func Test8SVXReader_RealFile(t *testing.T) {
+	path := filepath.Join("testdata", "paketti", "voice.8svx")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Skip("skipping real file test: voice.8svx not found")
+	}
+
+	reader := &engine.IFFReader{}
+	samples, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("8SVX read failed: %v", err)
+	}
+	if len(samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(samples))
+	}
+}
+
+func TestTX16WReader_RealFile(t *testing.T) {
+	path := filepath.Join("testdata", "paketti", "test.w01")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Skip("skipping real file test: test.w01 not found")
+	}
+
+	reader := &engine.TX16WReader{}
+	samples, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("TX16W read failed: %v", err)
+	}
+	if len(samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(samples))
+	}
+}
+
 func buildMinimalWAV() []byte {
 	buf := &bytes.Buffer{}
 	buf.WriteString("RIFF")

@@ -383,6 +383,45 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		sanCategory := SanitizeCategory(cfg.Category)
 		return EncodeOP1AIF(f, extraction, payloadName, sanCategory)
 
+	case "8svx":
+		path := basePath + ".8svx"
+		outDir := filepath.Dir(path)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return Encode8SVX(f, extraction)
+
+	case "16sv":
+		path := basePath + ".16sv"
+		outDir := filepath.Dir(path)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return Encode16SV(f, extraction)
+
+	case "tx16w", "txw":
+		path := basePath + ".txw"
+		outDir := filepath.Dir(path)
+		if outDir != "." && outDir != "" {
+			_ = os.MkdirAll(outDir, 0o755)
+		}
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return EncodeTX16W(f, extraction)
+
 	case "caf":
 		path := basePath + ".caf"
 		outDir := filepath.Dir(path)
@@ -988,7 +1027,7 @@ func buildSingleOutput(slices []SliceExtraction) []SliceExtraction {
 	}
 }
 
-var inputExtensions = []string{".rex", ".rx2", ".rcy", ".xrni", ".als", ".adv", ".adg", ".wav", ".aif", ".aiff", ".caf", ".pti", ".ot", ".xy", ".dt2pst"}
+var inputExtensions = []string{".rex", ".rx2", ".rcy", ".xrni", ".als", ".adv", ".adg", ".wav", ".aif", ".aiff", ".caf", ".pti", ".ot", ".xy", ".dt2pst", ".mod", ".8svx", ".16sv", ".iff", ".txw", ".w01", ".w02", ".w03", ".w04", ".w05", ".w06", ".w07", ".w08", ".w09", ".w10", ".w11", ".w12", ".w13", ".w14", ".w15", ".w16", ".w17", ".w18", ".w19", ".w20", ".w21", ".w22", ".w23", ".w24", ".w25", ".w26", ".w27", ".w28", ".w29", ".w30", ".w31", ".w32"}
 
 func isSupportedInput(ext string) bool {
 	ext = strings.ToLower(ext)
