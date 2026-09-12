@@ -132,36 +132,37 @@ chirashi simpler.adv -o output.aif
 
 ## Flags
 
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `--input-file` | `-i` | — | Input file(s) (repeatable) |
-| `--input-dir` | `-d` | — | Scan directory for input files |
-| `--output-file` | `-o` | — | Output path (single input only) |
-| `--output-dir` | `-e` | — | Output directory for batch |
-| `--format` | `-f` | `wav` | Output format (see below) |
-| `--bit-rate` | `-b` | 16 | Bit depth: 8, 16, or 24 |
-| `--sample-rate` | `-s` | source | Output sample rate in Hz (1k–1M). Auto-detects source rate if omitted. |
-| `--mono` | `-m` | false | Downmix to mono |
-| `--mono-mode` | — | `sum` | `sum`, `left`, `right`, `difference`, `dual-detect` |
-| `--tempo` | `-t` | 0 | Override tempo in BPM (0 = use original, clamped to 20-450 range) |
-| `--bpm-prefix` | — | false | Prepend BPM to filename (e.g. `128-Source.wav`). Sources: file metadata → filename patterns → `--tempo`. Ignored with `-o` (no `-l`) |
-| `--slice-limit` | `-l` | 0 | Max slices per output file |
-| `--no-slices` | `-n` | false | Ignore slice markers, render plain output |
-| `--recursive` | `-r` | false | Recurse subdirs (with `--input-dir`) |
-| `--preserve` | `-p` | false | Preserve directory structure (with `--input-dir`) |
-| `--quiet` | `-q` | false | Suppress progress |
-| `--verbose` | `-v` | false | Debug output |
-| `--category` | `-c` | `chirashi` | Folder tag for hardware (OP-1). Max 10 chars. |
-| `--rex-sensitivity` | — | false | Use REX2 adaptive transient detection instead of strict markers |
-| `--library-path` | — | — | Ableton User Library path |
-| `--input-format` | — | auto | Force input format (override auto-detect) |
-| `--sample-path-mode` | — | `relative` | Sample path style in XML (reserved) |
+| Flag                 | Short | Default    | Description                                                                                                                          |
+| -------------------- | ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `--input-file`       | `-i`  | —          | Input file(s) (repeatable)                                                                                                           |
+| `--input-dir`        | `-d`  | —          | Scan directory for input files                                                                                                       |
+| `--output-file`      | `-o`  | —          | Output path (single input only)                                                                                                      |
+| `--output-dir`       | `-e`  | —          | Output directory for batch                                                                                                           |
+| `--format`           | `-f`  | `wav`      | Output format (see below)                                                                                                            |
+| `--bit-rate`         | `-b`  | 16         | Bit depth: 8, 16, or 24                                                                                                              |
+| `--sample-rate`      | `-s`  | source     | Output sample rate in Hz (1k–1M). Auto-detects source rate if omitted.                                                               |
+| `--mono`             | `-m`  | false      | Downmix to mono                                                                                                                      |
+| `--mono-mode`        | —     | `sum`      | `sum`, `left`, `right`, `difference`, `dual-detect`                                                                                  |
+| `--tempo`            | `-t`  | 0          | Override tempo in BPM (0 = use original, clamped to 20-450 range)                                                                    |
+| `--bpm-prefix`       | —     | false      | Prepend BPM to filename (e.g. `128-Source.wav`). Sources: file metadata → filename patterns → `--tempo`. Ignored with `-o` (no `-l`) |
+| `--slice-limit`      | `-l`  | 0          | Max slices per output file                                                                                                           |
+| `--no-slices`        | `-n`  | false      | Ignore slice markers, render plain output                                                                                            |
+| `--recursive`        | `-r`  | false      | Recurse subdirs (with `--input-dir`)                                                                                                 |
+| `--preserve`         | `-p`  | false      | Preserve directory structure (with `--input-dir`)                                                                                    |
+| `--quiet`            | `-q`  | false      | Suppress progress                                                                                                                    |
+| `--verbose`          | `-v`  | false      | Debug output                                                                                                                         |
+| `--category`         | `-c`  | `chirashi` | Folder tag for hardware (OP-1). Max 10 chars.                                                                                        |
+| `--rex-sensitivity`  | —     | false      | Use REX2 adaptive transient detection instead of strict markers                                                                      |
+| `--library-path`     | —     | —          | Ableton User Library path                                                                                                            |
+| `--input-format`     | —     | auto       | Force input format (override auto-detect)                                                                                            |
+| `--sample-path-mode` | —     | `relative` | Sample path style in XML (reserved)                                                                                                  |
 
 ### BPM prefix
 
 The `--bpm-prefix` flag prepends the detected BPM to output filenames (e.g., `128-SourceName.wav`).
 
 **BPM resolution priority:**
+
 1. File metadata `OriginalTempo` (REX, CAF Apple Loop)
 2. File metadata `Tempo`
 3. Filename patterns (`_NNNbpm` suffix anywhere in name, or `NNN` prefix)
@@ -170,6 +171,7 @@ The `--bpm-prefix` flag prepends the detected BPM to output filenames (e.g., `12
 **Conflict handling:** If `--tempo` is provided but differs from metadata BPM by more than 0.5, a warning is printed and metadata BPM is used for the prefix.
 
 **Interaction with `-o` and `-l`:**
+
 - `-o` without `-l`: prefix is skipped (single output file, path is exact)
 - `-o` with `-l`: prefix is applied to each chunked output file
 
@@ -187,54 +189,53 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 
 ### Input formats
 
-| Format | Extensions | Platform | Notes |
-|--------|------------|----------|-------|
-| REX2 | `.rx2` | All | Pure Go parser and encoder (bit-perfect) |
-| Akai MPC | `.xpm` | All | Reads Akai MPC drum programs |
-| REX | `.rex` | All | Pure Go parser (legacy) |
-| RCY | `.rcy` | All | Pure Go parser (ReCycle document) |
-| Renoise XRNI | `.xrni` | All | ZIP container, pure Go parser |
-| Ableton Simpler | `.adv` | All | needs `--library-path` for sample resolution |
-| Ableton Drum Rack | `.adg` | All | needs `--library-path`; 128 pads max, auto-splits |
-| Ableton Live Set | `.als` | All | needs `--library-path` |
-| Simpler (legacy) | `.simpler` | All | alias for `.adv` |
-| Polyend Tracker | `.pti` | All | pure Go parser |
-| Octatrack | `.ot` | All | reads `.ot` sidecar + companion `.wav` |
-| OP-XY | `.xy` | All | ZIP container (patch.json + per-slice WAVs) |
-| Akai MPC | `.xpm` | All | reads Akai MPC drum programs |
-| WAV | `.wav` | All | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
-| AIFF | `.aif`, `.aiff` | All | reads MARK chunk for slices |
-| Apple CAF | `.caf` | All | Apple Loop format, reads beat markers for slices |
-| Yamaha TX16W | `.w01`..`.w32`, `.txw` | All | 12-bit packed mono PCM (Typhoon OS) |
-| Amiga IFF | `.8svx`, `.16sv`, `.iff` | All | classic Amiga 8-bit/16-bit mono |
-| ProTracker MOD | `.mod` | All | extracts all embedded 8-bit samples |
+| Format            | Extensions               | Platform | Notes                                                                                      |
+| ----------------- | ------------------------ | -------- | ------------------------------------------------------------------------------------------ |
+| REX2              | `.rx2`                   | All      | Pure Go parser and encoder (bit-perfect)                                                   |
+| Akai MPC          | `.xpm`                   | All      | Reads Akai MPC drum programs                                                               |
+| REX               | `.rex`                   | All      | Pure Go parser (legacy)                                                                    |
+| RCY               | `.rcy`                   | All      | Pure Go parser (ReCycle document)                                                          |
+| Renoise XRNI      | `.xrni`                  | All      | ZIP container, pure Go parser                                                              |
+| Ableton Simpler   | `.adv`                   | All      | needs `--library-path` for sample resolution                                               |
+| Ableton Drum Rack | `.adg`                   | All      | needs `--library-path`; 128 pads max, auto-splits                                          |
+| Ableton Live Set  | `.als`                   | All      | needs `--library-path`                                                                     |
+| Simpler (legacy)  | `.simpler`               | All      | alias for `.adv`                                                                           |
+| Polyend Tracker   | `.pti`                   | All      | pure Go parser                                                                             |
+| Octatrack         | `.ot`                    | All      | reads `.ot` sidecar + companion `.wav`                                                     |
+| OP-XY             | `.xy`                    | All      | ZIP container (patch.json + per-slice WAVs)                                                |
+| Akai MPC          | `.xpm`                   | All      | reads Akai MPC drum programs                                                               |
+| WAV               | `.wav`                   | All      | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
+| AIFF              | `.aif`, `.aiff`          | All      | reads MARK chunk for slices                                                                |
+| Apple CAF         | `.caf`                   | All      | Apple Loop format, reads beat markers for slices                                           |
+| Yamaha TX16W      | `.w01`..`.w32`, `.txw`   | All      | 12-bit packed mono PCM (Typhoon OS)                                                        |
+| Amiga IFF         | `.8svx`, `.16sv`, `.iff` | All      | classic Amiga 8-bit/16-bit mono                                                            |
+| ProTracker MOD    | `.mod`                   | All      | extracts all embedded 8-bit samples                                                        |
 
 ### Output formats
 
-| Format | Flag | Extension | Device Limit | Notes |
-|--------|------|-----------|--------------|-------|
-| WAV | `wav` | `.wav` | — | Sliced WAV with cue markers (Dirtywave M8-compatible) |
-| AIFF | `aif` | `.aif` | — | IFF format with MARK chunk |
-| AIFF (.aiff) | `aiff` | `.aiff` | — | Same as `aif`, different extension |
-| OP-1 AIFF | `aif-op1` | `.aif` | 24 slices | TE OP-1 drum kit with APPL metadata |
-| Renoise XRNI | `xrni` | `.xrni` | 128 | ZIP with Instrument.xml + PCM WAV |
-| Polyend Tracker | `pti` | `.pti` | 48 | Embedded PCM, auto-splits if >48 |
-| Octatrack | `ot` | `.ot` + `.wav` | 64 | Sidecar + companion WAV |
-| OP-XY preset | `xy` | `.preset.zip` | 24 | ZIP with patch.json + per-slice WAVs |
-| SFZ mapping | `sfz` | `.sfz` + `.wav` | — | Plain WAV + .sfz sidecar (open standard) |
-| Decent Sampler | `ds` | `.dspreset` + `.wav` | — | Plain WAV + .dspreset sidecar (free sampler) |
-| Akai MPC program | `xpm` | `.xpm` + `.wav` | 128 | Modern XML program (MPC Live/One/X) |
-| Elektron multi-sample | `el` | `_slices.txt` + `.wav` | 64 | TOML-like config + companion WAV |
-| Digitakt II | `dt2pst` | `.dt2pst` | 64 | ZIP with manifest.json + WAV + binary preset |
-| Yamaha TX16W | `tx16w` | `.txw` | — | 12-bit mono (Typhoon OS) |
-| Amiga 8SVX | `8svx` | `.8svx` | — | classic Amiga 8-bit mono |
-| Amiga 16SV | `16sv` | `.16sv` | — | 16-bit big-endian mono |
-| Apple Loop CAF | `caf` | `.caf` | — | 44100 Hz only; Apple Loop UUID metadata |
-| Ableton ADV | `adv` | `.adv` + `.wav` | — | Simpler XML preset + per-slice WAVs |
-| Ableton ALS | `als` | `.als` + `.wav` | — | Live Set XML + per-slice WAVs |
-| Ableton ADG | `adg` | `.adg` + WAVs | 128 | Drum Rack XML + per-pad WAVs |
-
-| REX2 | `rx2` | `.rx2` | — | Pure Go encoder; bit-perfect bitstream |
+| Format                | Flag      | Extension              | Device Limit | Notes                                                 |
+| --------------------- | --------- | ---------------------- | ------------ | ----------------------------------------------------- |
+| WAV                   | `wav`     | `.wav`                 | —            | Sliced WAV with cue markers (Dirtywave M8-compatible) |
+| AIFF                  | `aif`     | `.aif`                 | —            | IFF format with MARK chunk                            |
+| AIFF (.aiff)          | `aiff`    | `.aiff`                | —            | Same as `aif`, different extension                    |
+| OP-1 AIFF             | `aif-op1` | `.aif`                 | 24 slices    | TE OP-1 drum kit with APPL metadata                   |
+| Renoise XRNI          | `xrni`    | `.xrni`                | 128          | ZIP with Instrument.xml + PCM WAV                     |
+| Polyend Tracker       | `pti`     | `.pti`                 | 48           | Embedded PCM, auto-splits if >48                      |
+| Octatrack             | `ot`      | `.ot` + `.wav`         | 64           | Sidecar + companion WAV                               |
+| OP-XY preset          | `xy`      | `.preset.zip`          | 24           | ZIP with patch.json + per-slice WAVs                  |
+| SFZ mapping           | `sfz`     | `.sfz` + `.wav`        | —            | Plain WAV + .sfz sidecar (open standard)              |
+| Decent Sampler        | `ds`      | `.dspreset` + `.wav`   | —            | Plain WAV + .dspreset sidecar (free sampler)          |
+| Akai MPC program      | `xpm`     | `.xpm` + `.wav`        | 128          | Modern XML program (MPC Live/One/X)                   |
+| Elektron multi-sample | `el`      | `_slices.txt` + `.wav` | 64           | TOML-like config + companion WAV                      |
+| Digitakt II           | `dt2pst`  | `.dt2pst`              | 64           | ZIP with manifest.json + WAV + binary preset          |
+| Yamaha TX16W          | `tx16w`   | `.txw`                 | —            | 12-bit mono (Typhoon OS)                              |
+| Amiga 8SVX            | `8svx`    | `.8svx`                | —            | classic Amiga 8-bit mono                              |
+| Amiga 16SV            | `16sv`    | `.16sv`                | —            | 16-bit big-endian mono                                |
+| Apple Loop CAF        | `caf`     | `.caf`                 | —            | 44100 Hz only; Apple Loop UUID metadata               |
+| Ableton ADV           | `adv`     | `.adv` + `.wav`        | —            | Simpler XML preset + per-slice WAVs                   |
+| Ableton ALS           | `als`     | `.als` + `.wav`        | —            | Live Set XML + per-slice WAVs                         |
+| Ableton ADG           | `adg`     | `.adg` + WAVs          | 128          | Drum Rack XML + per-pad WAVs                          |
+| REX2                  | `rx2`     | `.rx2`                 | —            | Pure Go encoder; bit-perfect bitstream                |
 
 ## Format details
 
@@ -244,9 +245,9 @@ Standard PCM WAV reader and writer with full support for high-precision and mult
 
 - **`WAVE_FORMAT_EXTENSIBLE` (65534)**: Full support for reading extensible WAV headers, automatically detecting underlying PCM or IEEE Float subformats via GUID.
 - **IEEE Float (3)**: Supports reading 32-bit and 64-bit floating-point audio.
-- **Cue Markers**: Default `wav` output produces a single WAV with optional `cue ` and `adtl` chunks when the input has slice markers. Tailored for **Dirtywave M8** — a strict WAV parser that rejects unexpected chunks after `data`:
+- **Cue Markers**: Default `wav` output produces a single WAV with optional `cue` and `adtl` chunks when the input has slice markers. Tailored for **Dirtywave M8** — a strict WAV parser that rejects unexpected chunks after `data`:
   - Written in one sequential pass with pre-computed offsets
-  - Only `fmt `, optional `cue ` / `adtl`, and `data` chunks
+  - Only `fmt`, optional `cue` / `adtl`, and `data` chunks
   - **No** `LIST`/`INFO` chunks (M8 doesn't handle them)
   - `dwChunkStart` / `dwBlockStart` = 0, `fccChunk` = `"data"`, `dwSampleOffset` = frame index
   - Other DAWs (Ableton, Logic, Reaper) load the same WAV fine
@@ -280,6 +281,7 @@ chirashi loop.rx2 -s 44100 -f caf -o loop.caf   # Apple Loop for Logic/GarageBan
 Ableton presets (`.adv` Simpler, `.adg` Drum Rack, `.als` Live Set) are XML wrappers (gzip-compressed) that reference external WAV samples.
 
 **Input (reading):** Use `--library-path` to point chirashi at your Ableton User Library. Search order:
+
 1. Exact path in the preset (if absolute and exists)
 2. `<library-path>/<original-path>`
 3. `<library-path>/Samples/Imported/<sample-basename>`
@@ -304,6 +306,7 @@ output/
 ```
 
 **ADG specifics:**
+
 - Up to 128 pads per file, assigned starting at MIDI note 36 (C2)
 - Inputs with >128 slices auto-split into multiple `.adg` files
 - `-l` requests a smaller chunk size (e.g. `-l 64` = 64 pads per file)
@@ -482,7 +485,7 @@ The `rex2/` package implements a complete REX2 parser and encoder in pure Go:
    - `SDAT` / `DWOP` — compressed audio data
 
 2. **DWOP compression**: The audio data uses a proprietary DPCM (differential pulse-code modulation) scheme with variable-length bit stuffing:
-   - **Predictor State**: Decodes samples using a 4-state predictor machine. 
+   - **Predictor State**: Decodes samples using a 4-state predictor machine.
    - **Stereo Coupling**: Stereo frames are encoded as `Left` followed by a `Delta` channel.
    - **Bit-Perfect Symmetry**: The encoder exactly inverts the decoder's predictor logic to achieve bit-parity with files produced by the original SDK.
    - **Word Alignment**: SDAT payloads are zero-padded to 32-bit boundaries to ensure compatibility with strict REX parsers.
@@ -492,7 +495,7 @@ The `rex2/` package implements a complete REX2 parser and encoder in pure Go:
    - **Gate Sensitivity**: Calculates minimum slice lengths to prevent "machine gun" triggers on noisy transients.
    - **Visibility Flags**: Respects manual "Muted" and "Locked" states from ReCycle.
 
-4. **Robustness**: 
+4. **Robustness**:
    - **Header Guard**: Explicitly detects `<!DOCTYPE html>` to identify failed web downloads.
    - **Fault Tolerance**: Batch mode continues processing remaining files if one is corrupt.
    - **REX1 detection**: Detects legacy `CAT REX\x01` files (read-only; write support not planned).
