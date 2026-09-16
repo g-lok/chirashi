@@ -6,6 +6,26 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ---
 
+## [LRN-20260915-RELEASE-CHECKSUMS] best_practice
+
+**Logged**: 2026-09-15T18:30:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: release
+
+### Summary
+Stream release checksums via STDOUT during Homebrew/Scoop manifest updates
+
+### Details
+When updating downstream package manager repositories (Homebrew tap `chirashi.rb`, Scoop bucket `chirashi.json`), never download release archives (`.tar.gz` / `.zip`) to the local working directory. Use `gh release download <tag> -p "CHECKSUMS.txt" -O -` to output `CHECKSUMS.txt` directly to STDOUT in memory. This prevents leaving downloaded release archives in the local repository. Note: Generic `*.zip` must not be added to `.gitignore` because OP-XY presets use `.preset.zip`. Use `chirashi-*.zip` and `*.tar.gz` in `.gitignore` instead.
+
+### Metadata
+- Source: user_feedback
+- Related Files: .gitignore, .github/workflows/release.yml
+- Tags: release, github-cli, gitignore, package-managers
+
+---
+
 ## [LRN-20260817-OP1] insight
 
 **Logged**: 2026-08-17T19:00:00Z

@@ -5,6 +5,8 @@
 *.o
 *.a
 *.h
+*.tar.gz
+chirashi-*.zip
 build/
 
 # Python / Poetry
