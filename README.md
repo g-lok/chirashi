@@ -30,6 +30,7 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
   - [Teenage Engineering OP-1](#teenage-engineering-op-1)
   - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
   - [Akai MPC Program (XPM)](#akai-mpc-program-xpm)
+  - [Akai Legacy MPC Program (PGM)](#akai-legacy-mpc-program-pgm)
   - [Bitwig Studio Multisample](#bitwig-studio-multisample)
   - [Roland SP-404 MKII](#roland-sp-404-mkii)
   - [SFZ Mapping](#sfz-mapping)
@@ -207,7 +208,8 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Octatrack         | `.ot`                    | All      | reads `.ot` sidecar + companion `.wav`                                                     |
 | OP-XY             | `.xy`                    | All      | ZIP container (patch.json + per-slice WAVs)                                                |
 | Bitwig Studio     | `.multisample`          | All      | ZIP container (multisample.xml + WAVs)                                                     |
-| Akai MPC          | `.xpm`                   | All      | reads Akai MPC drum programs                                                               |
+| Akai MPC          | `.xpm`                   | All      | reads Akai MPC drum programs (XPM)                         |
+| Akai Legacy MPC   | `.pgm`                   | All      | reads MPC 1000/500/2500 drum programs (PGM)                |
 | WAV               | `.wav`                   | All      | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
 | AIFF              | `.aif`, `.aiff`          | All      | reads MARK chunk for slices                                                                |
 | Apple CAF         | `.caf`                   | All      | Apple Loop format, reads beat markers for slices                                           |
@@ -231,7 +233,8 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Roland SP-404 MKII    | `sp404` / `sp404mk2` | Directory              | 160 pads     | SD-card ready ROLAND/SP-404MK2/IMPORT layout + 48kHz WAVs |
 | SFZ mapping           | `sfz`             | `.sfz` + `.wav`        | —            | Plain WAV + .sfz sidecar (open standard)              |
 | Decent Sampler        | `ds`      | `.dspreset` + `.wav`   | —            | Plain WAV + .dspreset sidecar (free sampler)          |
-| Akai MPC program      | `xpm`     | `.xpm` + `.wav`        | 128          | Modern XML program (MPC Live/One/X)                   |
+| Akai MPC program      | `xpm`             | `.xpm` + `.wav`        | 128          | Modern XML program (MPC Live/One/X)                   |
+| Akai Legacy MPC       | `pgm`             | `.pgm` + `.wav`        | 64 pads      | Binary program for MPC 1000/500/2500                  |
 | Elektron multi-sample | `el`      | `_slices.txt` + `.wav` | 64           | TOML-like config + companion WAV                      |
 | Digitakt II           | `dt2pst`  | `.dt2pst`              | 64           | ZIP with manifest.json + WAV + binary preset          |
 | Yamaha TX16W          | `tx16w`   | `.txw`                 | —            | 12-bit mono (Typhoon OS)                              |
@@ -372,6 +375,18 @@ Modern XML-based drum programs (`.xpm`) for **MPC Live, One, X, and Force**. Map
 
 ```bash
 chirashi loop.rx2 -f xpm -o mpc_kit.xpm
+```
+
+### Akai Legacy MPC Program (PGM)
+
+Binary drum program format (`.pgm`) for legacy hardware samplers including the **MPC 1000, MPC 500, and MPC 2500**. Maps up to 64 slices across Banks A–D (16 pads × 4 banks).
+
+- **Chromatic Pad Mapping**: Maps slices to pads in chromatic order starting at MIDI Note 36 (A01 = C2)
+- **Sidecar Format**: Produces a `.pgm` binary program file + companion WAV samples
+- **Auto-Splitting**: Inputs exceeding 64 slices auto-split into sequential `.pgm` program files
+
+```bash
+chirashi loop.rx2 -f pgm -o mpc1k_kit.pgm
 ```
 
 ### Bitwig Studio Multisample

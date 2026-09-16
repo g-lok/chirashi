@@ -538,6 +538,32 @@ func TestEncodeSP404_Basic(t *testing.T) {
 	}
 }
 
+func TestEncodePGM_Basic(t *testing.T) {
+	ext := testExtraction()
+	var buf bytes.Buffer
+
+	if err := EncodePGM(&buf, ext, "test_pgm"); err != nil {
+		t.Fatalf("EncodePGM: %v", err)
+	}
+
+	data := buf.Bytes()
+	if len(data) < 16 {
+		t.Fatal("PGM header too short")
+	}
+	if data[0] != 0x07 {
+		t.Fatalf("expected 0x07 magic, got 0x%02x", data[0])
+	}
+
+	reader := &PGMReader{}
+	meta, err := reader.Probe(data)
+	if err != nil {
+		t.Fatalf("PGM probe: %v", err)
+	}
+	if meta.SampleRate != 44100 {
+		t.Fatalf("expected 44100, got %d", meta.SampleRate)
+	}
+}
+
 func TestEncodeOP1_Basic(t *testing.T) {
 	ext := testExtraction()
 	var buf bytes.Buffer

@@ -1265,6 +1265,29 @@ func TestIntegration_SP404Format(t *testing.T) {
 	}
 }
 
+func TestIntegration_PGMFormat(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+
+	srcDir := t.TempDir()
+	outDir := t.TempDir()
+
+	wavPath := filepath.Join(srcDir, "sample.wav")
+	createTestWAV(t, wavPath, 44100, 1, 4410)
+
+	outPath := filepath.Join(outDir, "kit.pgm")
+	cmd := exec.Command(binaryPath, wavPath, "-f", "pgm", "-o", outPath)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("command failed: %v\noutput: %s", err, string(out))
+	}
+
+	if _, err := os.Stat(outPath); os.IsNotExist(err) {
+		t.Fatalf("expected PGM output file %s does not exist", outPath)
+	}
+}
+
 func createTestWAV(t *testing.T, path string, sampleRate, numChannels, numSamples int) {
 	f, err := os.Create(path)
 	if err != nil {
