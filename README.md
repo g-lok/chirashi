@@ -30,6 +30,7 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
   - [Teenage Engineering OP-1](#teenage-engineering-op-1)
   - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
   - [Akai MPC Program (XPM)](#akai-mpc-program-xpm)
+  - [Bitwig Studio Multisample](#bitwig-studio-multisample)
   - [SFZ Mapping](#sfz-mapping)
   - [Decent Sampler](#decent-sampler)
   - [Elektron multi-sample (EL)](#elektron-multi-sample-el)
@@ -204,6 +205,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Polyend Tracker   | `.pti`                   | All      | pure Go parser                                                                             |
 | Octatrack         | `.ot`                    | All      | reads `.ot` sidecar + companion `.wav`                                                     |
 | OP-XY             | `.xy`                    | All      | ZIP container (patch.json + per-slice WAVs)                                                |
+| Bitwig Studio     | `.multisample`          | All      | ZIP container (multisample.xml + WAVs)                                                     |
 | Akai MPC          | `.xpm`                   | All      | reads Akai MPC drum programs                                                               |
 | WAV               | `.wav`                   | All      | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
 | AIFF              | `.aif`, `.aiff`          | All      | reads MARK chunk for slices                                                                |
@@ -223,8 +225,9 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Renoise XRNI          | `xrni`    | `.xrni`                | 128          | ZIP with Instrument.xml + PCM WAV                     |
 | Polyend Tracker       | `pti`     | `.pti`                 | 48           | Embedded PCM, auto-splits if >48                      |
 | Octatrack             | `ot`      | `.ot` + `.wav`         | 64           | Sidecar + companion WAV                               |
-| OP-XY preset          | `xy`      | `.preset.zip`          | 24           | ZIP with patch.json + per-slice WAVs                  |
-| SFZ mapping           | `sfz`     | `.sfz` + `.wav`        | —            | Plain WAV + .sfz sidecar (open standard)              |
+| OP-XY preset          | `xy`              | `.preset.zip`          | 24           | ZIP with patch.json + per-slice WAVs                  |
+| Bitwig Studio         | `multisample` / `bw` | `.multisample`         | —            | Open ZIP format with multisample.xml + WAVs           |
+| SFZ mapping           | `sfz`             | `.sfz` + `.wav`        | —            | Plain WAV + .sfz sidecar (open standard)              |
 | Decent Sampler        | `ds`      | `.dspreset` + `.wav`   | —            | Plain WAV + .dspreset sidecar (free sampler)          |
 | Akai MPC program      | `xpm`     | `.xpm` + `.wav`        | 128          | Modern XML program (MPC Live/One/X)                   |
 | Elektron multi-sample | `el`      | `_slices.txt` + `.wav` | 64           | TOML-like config + companion WAV                      |
@@ -367,6 +370,19 @@ Modern XML-based drum programs (`.xpm`) for **MPC Live, One, X, and Force**. Map
 
 ```bash
 chirashi loop.rx2 -f xpm -o mpc_kit.xpm
+```
+
+### Bitwig Studio Multisample
+
+The **Bitwig `.multisample`** format is an open specification developed by Bitwig & PreSonus. It is a ZIP container containing `multisample.xml` and uncompressed PCM audio files for streaming sample playback in Bitwig Studio.
+
+- Open specification (`bitwig/multisample`)
+- Maps slices sequentially across key zones starting at C1 (note 24)
+- Stores uncompressed WAV audio inside the ZIP archive for instant streaming
+- Supported flags: `-f multisample` or `-f bw`
+
+```bash
+chirashi loop.rx2 -f multisample -o kit.multisample
 ```
 
 ### SFZ Mapping

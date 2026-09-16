@@ -485,6 +485,31 @@ func TestEncodeXY_RoundTrip(t *testing.T) {
 	}
 }
 
+func TestEncodeMultisample_Basic(t *testing.T) {
+	ext := testExtraction()
+	var buf bytes.Buffer
+	if err := EncodeMultisample(&buf, ext, "test_multisample", "Bass", 16); err != nil {
+		t.Fatalf("EncodeMultisample: %v", err)
+	}
+
+	data := buf.Bytes()
+	if len(data) < 22 {
+		t.Fatal("archive too small")
+	}
+
+	reader := &MultisampleReader{}
+	slices, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("Multisample roundtrip read: %v", err)
+	}
+	if len(slices) != 2 {
+		t.Fatalf("expected 2 slices, got %d", len(slices))
+	}
+	if slices[0].Metadata.Channels != 2 {
+		t.Fatalf("expected 2 channels, got %d", slices[0].Metadata.Channels)
+	}
+}
+
 func TestEncodeOP1_Basic(t *testing.T) {
 	ext := testExtraction()
 	var buf bytes.Buffer

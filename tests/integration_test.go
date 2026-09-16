@@ -1201,6 +1201,41 @@ func TestIntegration_FlattenRequiresRecursive(t *testing.T) {
 	}
 }
 
+func TestIntegration_BitwigMultisampleFormat(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+
+	srcDir := t.TempDir()
+	outDir := t.TempDir()
+
+	wavPath := filepath.Join(srcDir, "sample.wav")
+	createTestWAV(t, wavPath, 44100, 1, 4410)
+
+	outPath := filepath.Join(outDir, "preset.multisample")
+	cmd := exec.Command(binaryPath, wavPath, "-f", "multisample", "-o", outPath)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("command failed: %v\noutput: %s", err, string(out))
+	}
+
+	if _, err := os.Stat(outPath); os.IsNotExist(err) {
+		t.Fatalf("expected output file %s does not exist", outPath)
+	}
+
+	// Verify we can convert .multisample back to .wav
+	roundtripPath := filepath.Join(outDir, "roundtrip.wav")
+	cmd2 := exec.Command(binaryPath, outPath, "-f", "wav", "-o", roundtripPath)
+	out2, err := cmd2.CombinedOutput()
+	if err != nil {
+		t.Fatalf("roundtrip command failed: %v\noutput: %s", err, string(out2))
+	}
+
+	if _, err := os.Stat(roundtripPath); os.IsNotExist(err) {
+		t.Fatalf("expected roundtrip file %s does not exist", roundtripPath)
+	}
+}
+
 func createTestWAV(t *testing.T, path string, sampleRate, numChannels, numSamples int) {
 	f, err := os.Create(path)
 	if err != nil {

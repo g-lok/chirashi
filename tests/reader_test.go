@@ -590,6 +590,46 @@ func TestDT2PSTReader_RealFile(t *testing.T) {
 	t.Logf("DT2PST: %d slices, %d Hz, %d ch", len(slices), slices[0].Metadata.SampleRate, slices[0].Metadata.Channels)
 }
 
+func TestMultisampleReader_ProbeAndRead(t *testing.T) {
+	reader := engine.DetectReader(".multisample")
+	if reader == nil {
+		t.Fatal("no reader registered for .multisample")
+	}
+
+	ext := &engine.SliceExtraction{
+		Metadata: engine.RexMetadata{
+			Channels:   2,
+			SampleRate: 44100,
+			BitDepth:   16,
+		},
+		Interleaved: make([]float32, 4410*2), // 100ms stereo
+		TotalFrames: 4410,
+	}
+
+	var buf bytes.Buffer
+	if err := engine.EncodeMultisample(&buf, ext, "test_multisample", "Bass", 16); err != nil {
+		t.Fatalf("EncodeMultisample: %v", err)
+	}
+
+	data := buf.Bytes()
+	meta, err := reader.Probe(data)
+	if err != nil {
+		t.Fatalf("Multisample probe: %v", err)
+	}
+	if meta.SampleRate != 44100 {
+		t.Fatalf("expected sample rate 44100, got %d", meta.SampleRate)
+	}
+
+	slices, err := reader.Read(data, 44100)
+	if err != nil {
+		t.Fatalf("Multisample read: %v", err)
+	}
+	if len(slices) == 0 {
+		t.Fatal("expected at least 1 slice")
+	}
+	t.Logf("Multisample: %d slices, %d Hz, %d ch", len(slices), slices[0].Metadata.SampleRate, slices[0].Metadata.Channels)
+}
+
 func TestOTReader_RealSampleFile(t *testing.T) {
 	p := findTestOT()
 	if p == "" {
