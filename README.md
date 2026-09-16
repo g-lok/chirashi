@@ -145,8 +145,9 @@ chirashi simpler.adv -o output.aif
 | `--mono-mode`        | —     | `sum`      | `sum`, `left`, `right`, `difference`, `dual-detect`                                                                                  |
 | `--tempo`            | `-t`  | 0          | Override tempo in BPM (0 = use original, clamped to 20-450 range)                                                                    |
 | `--bpm-prefix`       | —     | false      | Prepend BPM to filename (e.g. `128-Source.wav`). Sources: file metadata → filename patterns → `--tempo`. Ignored with `-o` (no `-l`) |
-| `--slice-limit`      | `-l`  | 0          | Max slices per output file                                                                                                           |
-| `--no-slices`        | `-n`  | false      | Ignore slice markers, render plain output                                                                                            |
+| `--slice-limit`      | `-l`  | 0          | Max slices per output file. Exceeding the limit splits output into multiple files (e.g. _01,_02). Combine with `--normalize-splits` to balance slice distribution and avoid small hanging remainder samples. |
+| `--normalize-splits` | —     | false      | Balance slice distribution evenly across output file splits (requires `--slice-limit`). Prevents small hanging remainder samples.                                                        |
+| `--no-slices`        | `-n`  | false      | Ignore slice markers, render plain output                                                                                                                                                |
 | `--recursive`        | `-r`  | false      | Recurse subdirs (with `--input-dir`)                                                                                                 |
 | `--preserve`         | `-p`  | false      | Preserve directory structure (with `--input-dir`)                                                                                    |
 | `--quiet`            | `-q`  | false      | Suppress progress                                                                                                                    |
@@ -310,7 +311,7 @@ output/
 - Up to 128 pads per file, assigned starting at MIDI note 36 (C2)
 - Inputs with >128 slices auto-split into multiple `.adg` files
 - `-l` requests a smaller chunk size (e.g. `-l 64` = 64 pads per file)
-- With `-n` (normalize-splits), output is balanced across the effective chunk count
+- With `--normalize-splits`, output is balanced across the effective chunk count
 
 ### Renoise XRNI
 
