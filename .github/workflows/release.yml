@@ -58,15 +58,33 @@ jobs:
             tar czf "$ARCHIVE.tar.gz" "$ARCHIVE/"
           fi
 
-      - name: Checksums
-        run: |
-          cd build/releases
-          sha256sum chirashi-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}.* > CHECKSUMS.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            build/releases/*.tar.gz
+            build/releases/*.zip
 
-      - name: Upload
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          merge-multiple: true
+
+      - name: Generate unified CHECKSUMS.txt
+        run: |
+          cd dist
+          sha256sum * > CHECKSUMS.txt
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/releases/*
+          files: dist/*
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
