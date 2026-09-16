@@ -17,6 +17,7 @@ var (
 	outputFile      string
 	outputDir       string
 	recursive       bool
+	flatten         bool
 	bitRate         int
 	sampleRate      int
 	mono            bool
@@ -24,7 +25,6 @@ var (
 	normalizeSplits bool
 	tempo           int
 	quiet           bool
-	preserve        bool
 	verbose         bool
 	outputFormat    string
 	noSlices        bool
@@ -77,8 +77,12 @@ mono downmix, and slice grouping.`,
 			return fmt.Errorf("error: --recursive requires --input-dir")
 		}
 
-		if preserve && !hasDirInput {
-			return fmt.Errorf("error: --preserve requires --input-dir")
+		if flatten && !hasDirInput {
+			return fmt.Errorf("error: --flatten requires --input-dir")
+		}
+
+		if flatten && !recursive {
+			return fmt.Errorf("error: --flatten requires --recursive")
 		}
 
 		if normalizeSplits && sliceLimit <= 0 {
@@ -108,6 +112,7 @@ mono downmix, and slice grouping.`,
 			OutputFile:      outputFile,
 			OutputDir:       outputDir,
 			Recursive:       recursive,
+			Flatten:         flatten,
 			BitRate:         bitRate,
 			SampleRate:      sampleRate,
 			Mono:            mono,
@@ -115,7 +120,7 @@ mono downmix, and slice grouping.`,
 			NormalizeSplits: normalizeSplits,
 			Tempo:           tempo,
 			Quiet:           quiet,
-			Preserve:        preserve,
+			Preserve:        recursive && !flatten,
 			Verbose:         verbose,
 			Format:          outputFormat,
 			NoSlices:        noSlices,
@@ -146,8 +151,8 @@ func init() {
 	rootCmd.Flags().StringVarP(&inputDir, "input-dir", "d", "", "Scan directory for supported slice files")
 	rootCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Output WAV path (single input only)")
 	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "e", "", "Output directory for batch conversions")
-	rootCmd.Flags().BoolVarP(&recursive, "recursive", "r", false, "Recurse subdirectories (requires --input-dir)")
-	rootCmd.Flags().BoolVarP(&preserve, "preserve", "p", false, "Preserve directory structure in output (requires --input-dir)")
+	rootCmd.Flags().BoolVarP(&recursive, "recursive", "r", false, "Recurse subdirectories (preserves directory structure by default)")
+	rootCmd.Flags().BoolVar(&flatten, "flatten", false, "Flatten subdirectory structure into output directory when recursing")
 	rootCmd.Flags().IntVarP(&bitRate, "bit-rate", "b", 0, "Bit depth: 8, 16, or 24")
 	rootCmd.Flags().IntVarP(&sampleRate, "sample-rate", "s", 0, "Output sample rate in Hz")
 	rootCmd.Flags().BoolVarP(&mono, "mono", "m", false, "Downmix to mono")

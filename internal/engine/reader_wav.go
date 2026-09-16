@@ -156,7 +156,7 @@ func readWAVFullFmt(data []byte) (sampleRate, channels, bitDepth int, isFloat bo
 				if chunkSize < 40 {
 					return 0, 0, 0, false, fmt.Errorf("fmt extensible chunk too small")
 				}
-				subFormat := binary.LittleEndian.Uint32(data[pos+24 : pos+28])
+				subFormat := binary.LittleEndian.Uint32(data[pos+32 : pos+36])
 				if subFormat == 1 {
 					isFloat = false
 				} else if subFormat == 3 {

@@ -39,11 +39,12 @@ type PipelineConfig struct {
 	BitRate         int
 	Mono            bool
 	Recursive       bool
+	Flatten         bool
 	SliceLimit      int
 	NormalizeSplits bool
 	Tempo           int   // BPM override (0 = use original)
 	Quiet           bool  // Suppress "Converting:" progress lines
-	Preserve        bool  // Mirror input directory structure in output
+	Preserve        bool  // Mirror input directory structure in output (default with --recursive)
 	Verbose         bool
 	Format          string // Output format: wav, pti, ot, aif-op1, xy, el, dt2pst
 	NoSlices        bool   // Ignore REX cue positions, render single unsliced output

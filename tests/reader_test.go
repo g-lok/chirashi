@@ -843,8 +843,8 @@ func TestMODReader_RealFile(t *testing.T) {
 func Test8SVXReader_RealFile(t *testing.T) {
 	path := filepath.Join("testdata", "paketti", "voice.8svx")
 	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Skip("skipping real file test: voice.8svx not found")
+	if err != nil || bytes.HasPrefix(bytes.TrimSpace(data), []byte("<!DOCTYPE html>")) {
+		t.Skip("skipping real file test: voice.8svx missing or HTML error page")
 	}
 
 	reader := &engine.IFFReader{}
@@ -860,8 +860,8 @@ func Test8SVXReader_RealFile(t *testing.T) {
 func TestTX16WReader_RealFile(t *testing.T) {
 	path := filepath.Join("testdata", "paketti", "test.w01")
 	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Skip("skipping real file test: test.w01 not found")
+	if err != nil || bytes.HasPrefix(bytes.TrimSpace(data), []byte("<!DOCTYPE html>")) {
+		t.Skip("skipping real file test: test.w01 missing or HTML error page")
 	}
 
 	reader := &engine.TX16WReader{}

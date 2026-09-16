@@ -148,8 +148,8 @@ chirashi simpler.adv -o output.aif
 | `--slice-limit`      | `-l`  | 0          | Max slices per output file. Exceeding the limit splits output into multiple files (e.g. _01,_02). Combine with `--normalize-splits` to balance slice distribution and avoid small hanging remainder samples. |
 | `--normalize-splits` | —     | false      | Balance slice distribution evenly across output file splits (requires `--slice-limit`). Prevents small hanging remainder samples.                                                        |
 | `--no-slices`        | `-n`  | false      | Ignore slice markers, render plain output                                                                                                                                                |
-| `--recursive`        | `-r`  | false      | Recurse subdirs (with `--input-dir`)                                                                                                 |
-| `--preserve`         | `-p`  | false      | Preserve directory structure (with `--input-dir`)                                                                                    |
+| `--recursive`        | `-r`  | false      | Recurse subdirectories (preserves directory structure by default)                                                                    |
+| `--flatten`          | —     | false      | Flatten subdirectories into output directory when recursing (requires `-r`)                                                          |
 | `--quiet`            | `-q`  | false      | Suppress progress                                                                                                                    |
 | `--verbose`          | `-v`  | false      | Debug output                                                                                                                         |
 | `--category`         | `-c`  | `chirashi` | Folder tag for hardware (OP-1). Max 10 chars.                                                                                        |

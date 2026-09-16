@@ -1106,3 +1106,127 @@ func TestSineWavePipeline(t *testing.T) {
 	}
 	t.Log("Sine wave round-trip: OK")
 }
+
+func TestIntegration_RecursivePreserveByDefault(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+
+	srcDir := t.TempDir()
+	subDir1 := filepath.Join(srcDir, "kicks")
+	subDir2 := filepath.Join(srcDir, "snares")
+	if err := os.MkdirAll(subDir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(subDir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	file1 := filepath.Join(subDir1, "kick.wav")
+	file2 := filepath.Join(subDir2, "snare.wav")
+	createTestWAV(t, file1, 44100, 1, 100)
+	createTestWAV(t, file2, 44100, 1, 100)
+
+	outDir := t.TempDir()
+	cmd := exec.Command(binaryPath, "-d", srcDir, "-r", "-e", outDir)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("command failed: %v\noutput: %s", err, string(out))
+	}
+
+	expected1 := filepath.Join(outDir, "kicks", "kick.wav")
+	expected2 := filepath.Join(outDir, "snares", "snare.wav")
+
+	if _, err := os.Stat(expected1); os.IsNotExist(err) {
+		t.Fatalf("expected preserved path %s does not exist", expected1)
+	}
+	if _, err := os.Stat(expected2); os.IsNotExist(err) {
+		t.Fatalf("expected preserved path %s does not exist", expected2)
+	}
+}
+
+func TestIntegration_RecursiveFlatten(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+
+	srcDir := t.TempDir()
+	subDir1 := filepath.Join(srcDir, "kicks")
+	subDir2 := filepath.Join(srcDir, "snares")
+	if err := os.MkdirAll(subDir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(subDir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	file1 := filepath.Join(subDir1, "kick.wav")
+	file2 := filepath.Join(subDir2, "snare.wav")
+	createTestWAV(t, file1, 44100, 1, 100)
+	createTestWAV(t, file2, 44100, 1, 100)
+
+	outDir := t.TempDir()
+	cmd := exec.Command(binaryPath, "-d", srcDir, "-r", "--flatten", "-e", outDir)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("command failed: %v\noutput: %s", err, string(out))
+	}
+
+	flattened1 := filepath.Join(outDir, "kick.wav")
+	flattened2 := filepath.Join(outDir, "snare.wav")
+
+	if _, err := os.Stat(flattened1); os.IsNotExist(err) {
+		t.Fatalf("expected flattened file %s does not exist", flattened1)
+	}
+	if _, err := os.Stat(flattened2); os.IsNotExist(err) {
+		t.Fatalf("expected flattened file %s does not exist", flattened2)
+	}
+}
+
+func TestIntegration_FlattenRequiresRecursive(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+
+	srcDir := t.TempDir()
+	outDir := t.TempDir()
+
+	cmd := exec.Command(binaryPath, "-d", srcDir, "--flatten", "-e", outDir)
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatal("expected error when --flatten is used without -r, but succeeded")
+	}
+	if !strings.Contains(string(out), "--flatten requires --recursive") {
+		t.Fatalf("unexpected error output: %s", string(out))
+	}
+}
+
+func createTestWAV(t *testing.T, path string, sampleRate, numChannels, numSamples int) {
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	bytesPerSample := 2
+	blockAlign := uint16(numChannels * bytesPerSample)
+	byteRate := uint32(sampleRate) * uint32(blockAlign)
+	dataSize := uint32(numSamples * int(blockAlign))
+	chunkSize := uint32(36 + dataSize)
+
+	f.Write([]byte("RIFF"))
+	binary.Write(f, binary.LittleEndian, chunkSize)
+	f.Write([]byte("WAVEfmt "))
+	binary.Write(f, binary.LittleEndian, uint32(16))
+	binary.Write(f, binary.LittleEndian, uint16(1))
+	binary.Write(f, binary.LittleEndian, uint16(numChannels))
+	binary.Write(f, binary.LittleEndian, uint32(sampleRate))
+	binary.Write(f, binary.LittleEndian, byteRate)
+	binary.Write(f, binary.LittleEndian, blockAlign)
+	binary.Write(f, binary.LittleEndian, uint16(16))
+	f.Write([]byte("data"))
+	binary.Write(f, binary.LittleEndian, dataSize)
+	for i := 0; i < numSamples*numChannels; i++ {
+		binary.Write(f, binary.LittleEndian, int16(0))
+	}
+}
