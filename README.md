@@ -31,6 +31,7 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
   - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
   - [Akai MPC Program (XPM)](#akai-mpc-program-xpm)
   - [Akai Legacy MPC Program (PGM)](#akai-legacy-mpc-program-pgm)
+  - [Reason NN-XT Patch (SXT)](#reason-nn-xt-patch-sxt)
   - [Bitwig Studio Multisample](#bitwig-studio-multisample)
   - [Roland SP-404 MKII](#roland-sp-404-mkii)
   - [SFZ Mapping](#sfz-mapping)
@@ -210,6 +211,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Bitwig Studio     | `.multisample`          | All      | ZIP container (multisample.xml + WAVs)                                                     |
 | Akai MPC          | `.xpm`                   | All      | reads Akai MPC drum programs (XPM)                         |
 | Akai Legacy MPC   | `.pgm`                   | All      | reads MPC 1000/500/2500 drum programs (PGM)                |
+| Reason NN-XT      | `.sxt`                   | All      | reads Reason NN-XT sampler patches (SXT)                   |
 | WAV               | `.wav`                   | All      | reads cue markers for slices; supports `WAVE_FORMAT_EXTENSIBLE` (65534) and IEEE Float (3) |
 | AIFF              | `.aif`, `.aiff`          | All      | reads MARK chunk for slices                                                                |
 | Apple CAF         | `.caf`                   | All      | Apple Loop format, reads beat markers for slices                                           |
@@ -235,6 +237,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Decent Sampler        | `ds`      | `.dspreset` + `.wav`   | —            | Plain WAV + .dspreset sidecar (free sampler)          |
 | Akai MPC program      | `xpm`             | `.xpm` + `.wav`        | 128          | Modern XML program (MPC Live/One/X)                   |
 | Akai Legacy MPC       | `pgm`             | `.pgm` + `.wav`        | 64 pads      | Binary program for MPC 1000/500/2500                  |
+| Reason NN-XT          | `sxt` / `nnxt`    | `.sxt` + `.wav`        | 128 notes    | IFF/FORM binary patch for Reason NN-XT                |
 | Elektron multi-sample | `el`      | `_slices.txt` + `.wav` | 64           | TOML-like config + companion WAV                      |
 | Digitakt II           | `dt2pst`  | `.dt2pst`              | 64           | ZIP with manifest.json + WAV + binary preset          |
 | Yamaha TX16W          | `tx16w`   | `.txw`                 | —            | 12-bit mono (Typhoon OS)                              |
@@ -387,6 +390,18 @@ Binary drum program format (`.pgm`) for legacy hardware samplers including the *
 
 ```bash
 chirashi loop.rx2 -f pgm -o mpc1k_kit.pgm
+```
+
+### Reason NN-XT Patch (SXT)
+
+Binary sampler patch format (`.sxt`) for Reason Studios' **NN-XT Advanced Sampler**. Maps up to 128 slices sequentially across keyboard zones.
+
+- **Sequential Zone Mapping**: Maps slices to keyboard zones starting at MIDI Note 24 (C1)
+- **Sidecar Format**: Produces a `.sxt` binary patch file + companion WAV audio samples
+- **Supported Flags**: `-f sxt` or `-f nnxt`
+
+```bash
+chirashi loop.rx2 -f sxt -o patch.sxt
 ```
 
 ### Bitwig Studio Multisample

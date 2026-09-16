@@ -564,6 +564,32 @@ func TestEncodePGM_Basic(t *testing.T) {
 	}
 }
 
+func TestEncodeSXT_Basic(t *testing.T) {
+	ext := testExtraction()
+	var buf bytes.Buffer
+
+	if err := EncodeSXT(&buf, ext, "test_sxt"); err != nil {
+		t.Fatalf("EncodeSXT: %v", err)
+	}
+
+	data := buf.Bytes()
+	if len(data) < 12 {
+		t.Fatal("SXT header too short")
+	}
+	if string(data[:4]) != "FORM" {
+		t.Fatalf("expected FORM magic, got %s", string(data[:4]))
+	}
+
+	reader := &SXTReader{}
+	meta, err := reader.Probe(data)
+	if err != nil {
+		t.Fatalf("SXT probe: %v", err)
+	}
+	if meta.SampleRate != 44100 {
+		t.Fatalf("expected 44100, got %d", meta.SampleRate)
+	}
+}
+
 func TestEncodeOP1_Basic(t *testing.T) {
 	ext := testExtraction()
 	var buf bytes.Buffer
