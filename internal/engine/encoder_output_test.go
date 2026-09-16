@@ -8,6 +8,8 @@ import (
 	"encoding/xml"
 	"io"
 	"math"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -507,6 +509,32 @@ func TestEncodeMultisample_Basic(t *testing.T) {
 	}
 	if slices[0].Metadata.Channels != 2 {
 		t.Fatalf("expected 2 channels, got %d", slices[0].Metadata.Channels)
+	}
+}
+
+func TestEncodeSP404_Basic(t *testing.T) {
+	ext := testExtraction()
+	dir := t.TempDir()
+
+	if err := EncodeSP404(dir, ext, "test_kit", 16); err != nil {
+		t.Fatalf("EncodeSP404: %v", err)
+	}
+
+	importDir := filepath.Join(dir, "ROLAND", "SP-404MK2", "IMPORT")
+	files, err := os.ReadDir(importDir)
+	if err != nil {
+		t.Fatalf("read import dir: %v", err)
+	}
+
+	if len(files) != 2 {
+		t.Fatalf("expected 2 pad files, got %d", len(files))
+	}
+
+	if !strings.HasPrefix(files[0].Name(), "A01_") {
+		t.Fatalf("expected A01 prefix, got %s", files[0].Name())
+	}
+	if !strings.HasPrefix(files[1].Name(), "A02_") {
+		t.Fatalf("expected A02 prefix, got %s", files[1].Name())
 	}
 }
 

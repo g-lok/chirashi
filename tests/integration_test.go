@@ -1236,6 +1236,35 @@ func TestIntegration_BitwigMultisampleFormat(t *testing.T) {
 	}
 }
 
+func TestIntegration_SP404Format(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+
+	srcDir := t.TempDir()
+	outDir := t.TempDir()
+
+	wavPath := filepath.Join(srcDir, "sample.wav")
+	createTestWAV(t, wavPath, 44100, 1, 4410)
+
+	sp404Dir := filepath.Join(outDir, "kit")
+	cmd := exec.Command(binaryPath, wavPath, "-f", "sp404", "-e", sp404Dir)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("command failed: %v\noutput: %s", err, string(out))
+	}
+
+	importDir := filepath.Join(sp404Dir, "sample", "ROLAND", "SP-404MK2", "IMPORT")
+	entries, err := os.ReadDir(importDir)
+	if err != nil {
+		t.Fatalf("expected SP-404 import dir %s does not exist: %v", importDir, err)
+	}
+
+	if len(entries) == 0 {
+		t.Fatal("expected at least 1 pad WAV file in import dir")
+	}
+}
+
 func createTestWAV(t *testing.T, path string, sampleRate, numChannels, numSamples int) {
 	f, err := os.Create(path)
 	if err != nil {

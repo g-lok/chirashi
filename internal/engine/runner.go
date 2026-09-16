@@ -462,6 +462,10 @@ func writeOutputFiles(basePath string, extraction *SliceExtraction, cfg Pipeline
 		name := filepath.Base(basePath)
 		return EncodeMultisample(f, extraction, name, cfg.Category, cfg.BitRate)
 
+	case "sp404", "sp404mk2":
+		name := filepath.Base(basePath)
+		return EncodeSP404(basePath, extraction, name, cfg.BitRate)
+
 	case "el":
 		wavPath := basePath + ".wav"
 		txtPath := basePath + "_slices.txt"

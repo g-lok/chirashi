@@ -31,6 +31,7 @@ CLI tool for converting between sliced instrument formats used in hardware sampl
   - [Teenage Engineering OP-XY (preset)](#teenage-engineering-op-xy-preset)
   - [Akai MPC Program (XPM)](#akai-mpc-program-xpm)
   - [Bitwig Studio Multisample](#bitwig-studio-multisample)
+  - [Roland SP-404 MKII](#roland-sp-404-mkii)
   - [SFZ Mapping](#sfz-mapping)
   - [Decent Sampler](#decent-sampler)
   - [Elektron multi-sample (EL)](#elektron-multi-sample-el)
@@ -227,6 +228,7 @@ chirashi loop.rx2 --bpm-prefix -l 16 -e ./output -f wav
 | Octatrack             | `ot`      | `.ot` + `.wav`         | 64           | Sidecar + companion WAV                               |
 | OP-XY preset          | `xy`              | `.preset.zip`          | 24           | ZIP with patch.json + per-slice WAVs                  |
 | Bitwig Studio         | `multisample` / `bw` | `.multisample`         | —            | Open ZIP format with multisample.xml + WAVs           |
+| Roland SP-404 MKII    | `sp404` / `sp404mk2` | Directory              | 160 pads     | SD-card ready ROLAND/SP-404MK2/IMPORT layout + 48kHz WAVs |
 | SFZ mapping           | `sfz`             | `.sfz` + `.wav`        | —            | Plain WAV + .sfz sidecar (open standard)              |
 | Decent Sampler        | `ds`      | `.dspreset` + `.wav`   | —            | Plain WAV + .dspreset sidecar (free sampler)          |
 | Akai MPC program      | `xpm`     | `.xpm` + `.wav`        | 128          | Modern XML program (MPC Live/One/X)                   |
@@ -383,6 +385,19 @@ The **Bitwig `.multisample`** format is an open specification developed by Bitwi
 
 ```bash
 chirashi loop.rx2 -f multisample -o kit.multisample
+```
+
+### Roland SP-404 MKII
+
+The **Roland SP-404 MKII** format produces an SD-card ready directory structure (`ROLAND/SP-404MK2/IMPORT/`) populated with 48,000 Hz 16-bit linear PCM WAV files mapped across Banks A–J (16 pads × 10 banks = 160 pads per project).
+
+- **Hardware Native**: Automatically resamples audio to 48,000 Hz 16-bit linear PCM
+- **Pad Mapping**: Prefixes files with bank pad codes (`A01_`, `A02_` ... `J16_`)
+- **Auto-Splitting**: Inputs exceeding 160 slices auto-split into sequential project directories
+- **Supported Flags**: `-f sp404` or `-f sp404mk2`
+
+```bash
+chirashi loop.rx2 -f sp404 -e ./sdcard
 ```
 
 ### SFZ Mapping
