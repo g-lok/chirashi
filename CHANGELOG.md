@@ -5,9 +5,23 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-15
+
+### Added
+
+- **Recursive Preservation by Default**: Recursive directory scanning (`-r` / `--recursive`) now automatically preserves relative directory structure in output folders by default.
+- **`--flatten` Flag**: Added `--flatten` option to collapse nested subdirectories into a single flat output folder when recursing.
+- **`--normalize-splits` Documentation**: Added missing `--normalize-splits` CLI flag to README documentation.
+
+### Fixed
+
+- **WAVE_FORMAT_EXTENSIBLE SubFormat GUID Offset**: Corrected GUID Data1 payload offset calculation in `reader_wav.go` from `pos+24` to `pos+32`, fixing decoding failures for extensible PCM and float WAV files.
+- **Slice Limit Documentation**: Expanded `--slice-limit` (`-l`) documentation to clarify output file splitting and normalization behavior.
+
 ## [1.5.0] - 2026-09-11
 
 ### Added
+
 - **Vintage Sampler Support**:
   - **Yamaha TX16W**: Read and write support for `.w01`..`.w32` and `.txw` formats (12-bit packed mono PCM).
   - **Amiga IFF 8SVX/16SV**: Read and write support for classic Amiga 8-bit and 16-bit mono formats.
@@ -17,67 +31,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Improved WAV Parser**: Standardized WAV parsing across all reader modules (XRNI, OT, DT2PST, OP-XY).
 
 ### Fixed
+
 - **XRNI WAV Compatibility**: Refactored XRNI reader to support all WAV subtypes (PCM, Float, Extensible) embedded in `.xrni` containers.
 - **OT Companion WAV Support**: Enhanced Octatrack companion WAV detection to handle extensible and floating-point formats.
 
 ## [1.4.3] - 2026-08-17
 
 ### Fixed
+
 - **Version Parity**: Synchronized hardcoded version strings and build flags to ensure `--version` correctly reports `v1.4.3`.
 
 ## [1.4.2] - 2026-08-17
 
 ### Fixed
+
 - **REX2 Strict Slicing**: Defaulted REX2 decoding to 'Strict' mode, treating every marker in the SLCE table as a hard slice. This ensures parity with Ableton Simpler and hardware samplers (like M8) that ignore internal transient sensitivity.
 - **OP-1 Category**: Corrected default folder name to `chirashi` (8 chars) to fit the 10-character hardware limit.
 - **Dynamic Metadata**: Replaced remaining `REXConverter` branding artifacts with the actual source filename in PTI, OP-1, and EL encoders.
 
 ### Added
+
 - **--rex-sensitivity flag**: Re-enables the 'smart' adaptive transient filtering based on analysis sensitivity for REX2 files.
 
 ## [1.4.1] - 2026-08-17
 
 ### Fixed
+
 - **Category Default**: Changed default `--category` from `chirashi-sliced` to `chirashi` to comply with the 10-character limit of the OP-1 hardware filesystem.
 
 ## [1.4.0] - 2026-08-17
 
 ### Added
+
 - **`--category` / `-c` flag**: Overrides the organizational folder name for hardware samplers that support grouping (currently OP-1). Defaults to `chirashi`.
 - **Dynamic Metadata**: All instrument formats (PTI, OP-1, EL) now use the source filename for internal instrument names instead of legacy hardcoded "REXConverter" or "chirashi" strings.
 
 ### Fixed
+
 - **Artifact Cleanup**: Removed hardcoded "SOLE DISPLAY" and "REXConverter" artifacts from several encoders.
 
 ## [1.3.1] - 2026-08-17
 
 ### Fixed
+
 - **DT2 Encoder Metadata**: Removed a hardcoded "SOLE DISPLAY" name artifact from the Digitakt II binary preset template. The preset name is now correctly derived from the input filename.
 
 ## [1.3.0] - 2026-08-17
 
 ### Added
+
 - **Robust Batch Processing**: The runner now reports specific filenames that fail to convert and continues processing the rest of the directory instead of aborting the entire batch.
 - **HTML Imposter Detection**: The REX2 decoder now explicitly detects `<!DOCTYPE html>` headers, identifying failed/redirected downloads that were saved with audio extensions.
 
 ## [1.2.2] - 2026-08-13
 
 ### Fixed
+
 - **Filename Sanitization**: Collapses multiple underscores and spaces in output filenames for cleaner results.
 
 ## [1.2.1] - 2026-08-13
 
 ### Fixed
+
 - **Trailing Underscores**: Removed trailing underscores from output filenames when no slice splitting occurs.
 
 ## [1.2.0] - 2026-08-13
 
 ### Added
+
 - **CLI Documentation**: Improved help text and directory scanning documentation.
 
 ## [1.1.0] - 2026-08-13
 
 ### Added
+
 - **The Open Ecosystem Update**:
   - **SFZ Export**: High-fidelity mapping to companion WAV files.
   - **Decent Sampler Export**: Modern XML-based .dspreset output.
@@ -88,6 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-08-12
 
 ### Added
+
 - **Bit-Perfect DWOP Encoder**: Reverse-engineered predictor symmetry and bitstream alignment for REX2 encoding.
 - **REX2 Output Enabled**: Successfully re-enabled `.rx2` output with bit-parity verification against original SDK.
 
