@@ -5,6 +5,22 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-09-15
+
+### Added
+
+- **Bitwig Studio Multisample Export & Import (`-f multisample` / `-f bw`)**:
+  - Full read and write support for Bitwig Studio `.multisample` archives.
+  - Implements the open specification (`bitwig/multisample`), embedding uncompressed PCM audio files and `multisample.xml` zone mappings into a ZIP container for direct audio streaming.
+- **Roland SP-404 MKII Export (`-f sp404` / `-f sp404mk2`)**:
+  - Generates SD-card ready `ROLAND/SP-404MK2/IMPORT/` directory structure.
+  - Auto-resamples audio to 48,000 Hz 16-bit linear PCM and maps up to 160 pads across Banks A–J (`A01_` ... `J16_`).
+- **Akai Legacy MPC Program Export & Import (`-f pgm`)**:
+  - Read and write support for binary `.pgm` drum programs for MPC 1000, MPC 500, and MPC 2500.
+  - Chromatically maps up to 64 pads across Banks A–D starting at MIDI Note 36 (C2).
+- **Reason NN-XT Patch Export & Import (`-f sxt` / `-f nnxt`)**:
+  - Read and write support for Propellerhead / Reason Studios NN-XT `.sxt` binary `FORM` patch files and companion WAV samples.
+
 ## [1.6.0] - 2026-09-15
 
 ### Added
