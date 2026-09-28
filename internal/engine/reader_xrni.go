@@ -55,6 +55,29 @@ func (r *XRNIReader) SupportedExtensions() []string {
 	return []string{".xrni"}
 }
 
+func (r *XRNIReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err == nil {
+		for _, f := range zr.File {
+			if strings.EqualFold(f.Name, "Instrument.xml") {
+				details["has_instrument_xml"] = true
+				if rc, err := f.Open(); err == nil {
+					var inst xrniInstrument
+					if iData, err := io.ReadAll(rc); err == nil {
+						if err := xml.Unmarshal(iData, &inst); err == nil {
+							details["instrument_name"] = inst.Name
+							details["sample_count"] = len(inst.Generator.Samples)
+						}
+					}
+					rc.Close()
+				}
+			}
+		}
+	}
+	return details
+}
+
 func (r *XRNIReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {

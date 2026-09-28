@@ -35,6 +35,9 @@ var (
 	bpmPrefix       bool
 	category        string
 	rexSensitivity  bool
+	info            bool
+	dryRun          bool
+	jsonOutput      bool
 )
 
 var rootCmd = &cobra.Command{
@@ -131,6 +134,9 @@ mono downmix, and slice grouping.`,
 			BpmPrefix:       bpmPrefix,
 			Category:        category,
 			RexSensitivity:  rexSensitivity,
+			Info:            info,
+			DryRun:          dryRun,
+			JsonOutput:      jsonOutput,
 		}
 
 		return engine.ExecuteConversionPipeline(pipelineConfig)
@@ -170,4 +176,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&bpmPrefix, "bpm-prefix", false, "Prepend detected BPM to output filename (e.g. 128-SourceName.wav). Ignored when -o is used without -l.")
 	rootCmd.Flags().StringVarP(&category, "category", "c", "chirashi", "Organizational tag for hardware folders (e.g. OP-1 original_folder). Max 10 chars.")
 	rootCmd.Flags().BoolVar(&rexSensitivity, "rex-sensitivity", false, "Use REX2 adaptive transient detection instead of strict markers")
+	rootCmd.Flags().BoolVar(&info, "info", false, "Display format-specific input file details without converting (read-only)")
+	rootCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Display input details and planned output settings without writing (read-only)")
+	rootCmd.Flags().BoolVar(&jsonOutput, "json", false, "Format diagnostic or dry-run output as JSON")
 }

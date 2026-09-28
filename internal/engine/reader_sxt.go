@@ -7,6 +7,10 @@ import (
 
 type SXTReader struct{}
 
+func (r *SXTReader) Inspect(data []byte) map[string]interface{} {
+	return make(map[string]interface{})
+}
+
 func (r *SXTReader) SupportedExtensions() []string {
 	return []string{".sxt"}
 }

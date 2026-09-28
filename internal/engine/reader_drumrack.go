@@ -100,6 +100,40 @@ func (r *DrumRackReader) SupportedExtensions() []string {
 	return []string{".adg"}
 }
 
+func (r *DrumRackReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	var doc adgDoc
+	xmlData, err := gunzipMaybe(data)
+	if err == nil {
+		if err := xml.Unmarshal(xmlData, &doc); err == nil {
+			var refs []string
+			if doc.GroupDevice != nil {
+				// Branches (from presets)
+				for _, branch := range doc.GroupDevice.BranchPresets.Branches {
+					if branch.DevicePresets.Preset.Device.DrumCell != nil {
+						path := branch.DevicePresets.Preset.Device.DrumCell.UserSample.Value.SampleRef.FileRef.Path.Value
+						if path != "" {
+							refs = append(refs, path)
+						}
+					}
+				}
+				// Pads (direct)
+				if doc.GroupDevice.Device.DrumGroup != nil && doc.GroupDevice.Device.DrumGroup.PadsWrapper != nil {
+					for _, pad := range doc.GroupDevice.Device.DrumGroup.PadsWrapper.Pads {
+						for _, s := range pad.Chain.DeviceChain.Devices.Simplers {
+							if s.SampleRef.FileRef.Path.Value != "" {
+								refs = append(refs, s.SampleRef.FileRef.Path.Value)
+							}
+						}
+					}
+				}
+			}
+			details["sample_references"] = refs
+		}
+	}
+	return details
+}
+
 func (r *DrumRackReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	raw, err := gunzipMaybe(data)
 	if err != nil {

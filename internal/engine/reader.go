@@ -8,6 +8,7 @@ import (
 type InputReader interface {
 	Probe(data []byte) (*RexMetadata, error)
 	Read(data []byte, targetSampleRate int) ([]SliceExtraction, error)
+	Inspect(data []byte) map[string]interface{}
 	SupportedExtensions() []string
 }
 

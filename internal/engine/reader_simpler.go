@@ -86,6 +86,31 @@ func (r *SimplerReader) SupportedExtensions() []string {
 	return []string{".adv", ".als"}
 }
 
+func (r *SimplerReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	var doc abletonDoc
+	xmlData, err := gunzipMaybe(data)
+	if err == nil {
+		if err := xml.Unmarshal(xmlData, &doc); err == nil {
+			if doc.Simpler != nil {
+				details["preset_name"] = "Simpler"
+				if doc.Simpler.Player != nil && doc.Simpler.Player.Map != nil {
+					var refs []string
+					for _, p := range doc.Simpler.Player.Map.Parts {
+						if p.SampleRef != nil && p.SampleRef.FileRef.Path.Value != "" {
+							refs = append(refs, p.SampleRef.FileRef.Path.Value)
+						}
+					}
+					details["sample_references"] = refs
+				} else if doc.Simpler.SampleRef != nil {
+					details["sample_references"] = []string{doc.Simpler.SampleRef.FileRef.Path.Value}
+				}
+			}
+		}
+	}
+	return details
+}
+
 func (r *SimplerReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	raw, err := gunzipMaybe(data)
 	if err != nil {

@@ -21,6 +21,10 @@ func (r *IFFReader) Probe(data []byte) (*RexMetadata, error) {
 	return &RexMetadata{Channels: 1}, nil
 }
 
+func (r *IFFReader) Inspect(data []byte) map[string]interface{} {
+	return make(map[string]interface{})
+}
+
 func (r *IFFReader) SupportedExtensions() []string {
 	return []string{".8svx", ".16sv", ".iff"}
 }

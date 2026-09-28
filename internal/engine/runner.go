@@ -155,6 +155,17 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 		return nil
 	}
 
+	// Capture input diagnostic before pipeline transformations
+	var inputDiag FileDiagnostic
+	if cfg.Info || cfg.DryRun {
+		inputDiag = BuildFileDiagnostic(fileData, sourcePath, cfg, slices)
+	}
+
+	if cfg.Info && !cfg.DryRun {
+		PrintReport(inputDiag, cfg.JsonOutput)
+		return nil
+	}
+
 	channels := slices[0].Metadata.Channels
 	applyMono := cfg.Mono || cfg.Format == "pti"
 
@@ -214,6 +225,16 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 				}
 			}
 		}
+	}
+
+	if cfg.DryRun {
+		plan := BuildOutputPlan(sourcePath, cfg, chunks)
+		report := DryRunReport{
+			Input:      inputDiag,
+			OutputPlan: plan,
+		}
+		PrintReport(report, cfg.JsonOutput)
+		return nil
 	}
 
 	totalFiles := len(chunks)

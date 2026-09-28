@@ -30,6 +30,33 @@ func (r *AIFFReader) SupportedExtensions() []string {
 	return []string{".aif", ".aiff"}
 }
 
+func (r *AIFFReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	if len(data) >= 12 {
+		details["form_type"] = string(data[8:12])
+	}
+	sampleRate, channels, bitDepth, err := readAIFFFullComm(data)
+	if err == nil {
+		details["sample_rate"] = sampleRate
+		details["channels"] = channels
+		details["bit_depth"] = bitDepth
+	}
+	marks := readAIFFMarks(data)
+	details["mark_count"] = len(marks)
+	if len(marks) > 0 {
+		var labels []string
+		for _, m := range marks {
+			if m.Label != "" {
+				labels = append(labels, m.Label)
+			}
+		}
+		if len(labels) > 0 {
+			details["mark_labels"] = labels
+		}
+	}
+	return details
+}
+
 func (r *AIFFReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(data) < 12 {
 		return nil, fmt.Errorf("aiff: file too short")

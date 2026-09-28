@@ -12,6 +12,10 @@ import (
 
 type MultisampleReader struct{}
 
+func (r *MultisampleReader) Inspect(data []byte) map[string]interface{} {
+	return make(map[string]interface{})
+}
+
 func (r *MultisampleReader) SupportedExtensions() []string {
 	return []string{".multisample"}
 }

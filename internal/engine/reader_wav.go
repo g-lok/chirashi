@@ -26,6 +26,24 @@ func (r *WAVReader) SupportedExtensions() []string {
 	return []string{".wav"}
 }
 
+func (r *WAVReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	sampleRate, channels, bitDepth, isFloat, err := readWAVFullFmt(data)
+	if err == nil {
+		details["sample_rate"] = sampleRate
+		details["channels"] = channels
+		details["bit_depth"] = bitDepth
+		if isFloat {
+			details["format"] = "IEEE Float"
+		} else {
+			details["format"] = "PCM"
+		}
+	}
+	cuePoints := readWAVCues(data)
+	details["cue_marker_count"] = len(cuePoints)
+	return details
+}
+
 func (r *WAVReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(data) < 12 {
 		return nil, fmt.Errorf("wav: file too short")

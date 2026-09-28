@@ -28,6 +28,26 @@ func (r *CAFReader) SupportedExtensions() []string {
 	return []string{".caf"}
 }
 
+func (r *CAFReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	sampleRate, channels, bitDepth, _, err := readCAFFullDesc(data)
+	if err == nil {
+		details["sample_rate"] = sampleRate
+		details["channels"] = channels
+		details["bit_depth"] = bitDepth
+	}
+	beatCount, timeSig := readAppleLoopMeta(data)
+	if beatCount > 0 {
+		details["apple_loop_beat_count"] = beatCount
+	}
+	if timeSig != "" {
+		details["apple_loop_time_sig"] = timeSig
+	}
+	markers := readCAFBeatMarkers(data)
+	details["beat_marker_count"] = len(markers)
+	return details
+}
+
 func (r *CAFReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(data) < 12 {
 		return nil, fmt.Errorf("caf: file too short")

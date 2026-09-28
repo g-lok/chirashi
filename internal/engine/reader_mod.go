@@ -35,6 +35,10 @@ func (r *MODReader) Probe(data []byte) (*RexMetadata, error) {
 	return &RexMetadata{SampleRate: 8363, Channels: 1}, nil
 }
 
+func (r *MODReader) Inspect(data []byte) map[string]interface{} {
+	return make(map[string]interface{})
+}
+
 func (r *MODReader) SupportedExtensions() []string {
 	return []string{".mod"}
 }

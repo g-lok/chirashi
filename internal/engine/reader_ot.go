@@ -28,6 +28,14 @@ func (r *OTReader) SupportedExtensions() []string {
 	return []string{".ot"}
 }
 
+func (r *OTReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	if len(data) >= 4 {
+		details["magic"] = string(data[:4])
+	}
+	return details
+}
+
 func (r *OTReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(data) < 8 {
 		return nil, fmt.Errorf("ot: sidecar too short (%d bytes)", len(data))

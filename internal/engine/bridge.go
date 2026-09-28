@@ -34,6 +34,7 @@ func RenderLoopPreview(fileData []byte, targetSampleRate, tempo int) (*SliceExtr
 		TimeSignDenom: f.Info.TimeSigDen,
 		BitDepth:      f.Info.BitDepth,
 		PPQLength:     f.Info.PPQLength,
+		RexSensitivity: f.Info.RexSensitivity,
 	}
 
 	startFrame := 0
@@ -90,6 +91,7 @@ func RenderSlicesPreview(fileData []byte, targetSampleRate, tempo int, strict bo
 		TimeSignDenom: f.Info.TimeSigDen,
 		BitDepth:      f.Info.BitDepth,
 		PPQLength:     f.Info.PPQLength,
+		RexSensitivity: f.Info.RexSensitivity,
 	}
 
 	result := make([]SliceExtraction, len(f.Slices))

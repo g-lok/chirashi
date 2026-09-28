@@ -7,6 +7,10 @@ import (
 
 type PGMReader struct{}
 
+func (r *PGMReader) Inspect(data []byte) map[string]interface{} {
+	return make(map[string]interface{})
+}
+
 func (r *PGMReader) SupportedExtensions() []string {
 	return []string{".pgm"}
 }

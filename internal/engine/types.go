@@ -12,6 +12,7 @@ type RexMetadata struct {
 	PPQLength     int     // Loop length in PPQ ticks
 	CreatorName   string
 	Copyright     string
+	RexSensitivity int
 }
 
 // WavCueMarker maps a slice boundary to a sample position in the output WAV.
@@ -55,4 +56,7 @@ type PipelineConfig struct {
 	BpmPrefix       bool   // Prepend detected BPM to output filename (e.g., "128-SourceName.wav")
 	Category        string // Organizational tag for hardware folders (e.g. OP-1 original_folder)
 	RexSensitivity  bool   // If true, use REX2 adaptive transient detection instead of strict markers
+	Info            bool   // Read-only diagnostic mode
+	DryRun          bool   // Pipeline simulation mode
+	JsonOutput      bool   // JSON formatting for info/dry-run
 }

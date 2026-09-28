@@ -6,6 +6,10 @@ import (
 
 type SP404Reader struct{}
 
+func (r *SP404Reader) Inspect(data []byte) map[string]interface{} {
+	return make(map[string]interface{})
+}
+
 func (r *SP404Reader) SupportedExtensions() []string {
 	return []string{".sp404"}
 }

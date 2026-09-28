@@ -38,7 +38,29 @@ func (r *XYReader) Probe(data []byte) (*RexMetadata, error) {
 }
 
 func (r *XYReader) SupportedExtensions() []string {
-	return []string{".xy"}
+	return []string{".preset.zip", ".xy"}
+}
+
+func (r *XYReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err == nil {
+		for _, f := range zr.File {
+			if f.Name == "patch.json" {
+				details["has_patch_json"] = true
+				if rc, err := f.Open(); err == nil {
+					var patch XYPresetJSON
+					if pData, err := io.ReadAll(rc); err == nil {
+						if err := json.Unmarshal(pData, &patch); err == nil {
+							details["region_count"] = len(patch.Regions)
+						}
+					}
+					rc.Close()
+				}
+			}
+		}
+	}
+	return details
 }
 
 func (r *XYReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {

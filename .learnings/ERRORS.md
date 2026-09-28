@@ -317,3 +317,30 @@ Keep constant as `"dt2pst"` (formally correct), but change `inputExtensions` and
 - **Notes**: Renamed writer extension to `.d2pst` in the output path logic.
 
 
+
+## [ERR-20260927-A1B] workflow_violation
+
+**Logged**: 2026-09-27T22:50:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: config | docs
+
+### Summary
+Failed to use `jj` and automated release procedures autonomously.
+
+### Error
+User had to explicitly request documentation updates, release creation, and package manager sync. Used `git` instead of `jj` in main repo.
+
+### Context
+- Task: Fix critical REX2 regression.
+- Violation: Ignored existing project conventions for release lifecycle and tool usage (`jj`).
+
+### Suggested Fix
+- Always check `AGENTS.md` and `README.md` for release automation.
+- Use `jj` for all main repository operations.
+- Proactively trigger package manager updates on version bump.
+
+### Metadata
+- Reproducible: yes
+- Related Files: AGENTS.md
+---

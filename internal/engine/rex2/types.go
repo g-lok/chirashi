@@ -18,6 +18,7 @@ type FileInfo struct {
 	TotalFrames   int
 	LoopStart     int
 	LoopEnd       int
+	RexSensitivity int
 }
 
 type SliceInfo struct {

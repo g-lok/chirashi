@@ -256,6 +256,7 @@ func (f *REX2File) parseGLOB(d []byte) {
 	f.Info.TimeSigNum = int(d[7])
 	f.Info.TimeSigDen = int(d[8])
 	f.analysisSensitivity = d[9]
+	f.Info.RexSensitivity = int(d[9])
 	f.gateSensitivity = binary.BigEndian.Uint16(d[10:])
 	f.processingGain = int(binary.BigEndian.Uint16(d[12:]))
 

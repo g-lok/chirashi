@@ -44,6 +44,29 @@ func (r *DT2PSTReader) SupportedExtensions() []string {
 	return []string{".dt2pst"}
 }
 
+func (r *DT2PSTReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err == nil {
+		for _, f := range zr.File {
+			if strings.ToLower(filepath.Base(f.Name)) == "manifest.json" {
+				details["has_manifest"] = true
+				if rc, err := f.Open(); err == nil {
+					var manifest DT2Manifest
+					if mData, err := io.ReadAll(rc); err == nil {
+						if err := json.Unmarshal(mData, &manifest); err == nil {
+							details["manifest_name"] = manifest.Name
+							details["payload"] = manifest.Payload
+						}
+					}
+					rc.Close()
+				}
+			}
+		}
+	}
+	return details
+}
+
 func (r *DT2PSTReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {

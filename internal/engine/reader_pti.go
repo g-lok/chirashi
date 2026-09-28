@@ -45,6 +45,22 @@ func (r *PTIReader) SupportedExtensions() []string {
 	return []string{".pti"}
 }
 
+func (r *PTIReader) Inspect(data []byte) map[string]interface{} {
+	details := make(map[string]interface{})
+	if len(data) >= 392 {
+		if data[0] == 'T' && data[1] == 'I' {
+			details["header_format"] = "TI (Encoder)"
+		} else if string(data[:3]) == "PTI" {
+			details["header_format"] = "PTI (Legacy)"
+		}
+		// Slice count is at offset 276
+		numSlices := int(data[276])
+		details["header_slice_count"] = numSlices
+		details["playback_mode"] = int(data[277])
+	}
+	return details
+}
+
 func (r *PTIReader) Read(data []byte, targetSampleRate int) ([]SliceExtraction, error) {
 	if len(data) < 8 {
 		return nil, fmt.Errorf("pti: file too short (%d bytes)", len(data))
