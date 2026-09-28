@@ -90,6 +90,14 @@ func ForceSampleRate(extraction *SliceExtraction, targetRate int) error {
 	extraction.Interleaved = dst
 	extraction.TotalFrames = dstFrames
 	extraction.Metadata.SampleRate = targetRate
+
+	// Scale cue points to new sample rate
+	if srcRate > 0 && targetRate > 0 && srcRate != targetRate {
+		scale := float64(targetRate) / float64(srcRate)
+		for i := range extraction.CuePoints {
+			extraction.CuePoints[i].Position = uint32(math.Round(float64(extraction.CuePoints[i].Position) * scale))
+		}
+	}
 	return nil
 }
 

@@ -5,6 +5,16 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-09-27
+
+### Fixed
+
+- **REX2 Cue Accuracy**: Switched REX2 loop rendering to use exact sample-frame offsets for cue markers, eliminating timing drift seen in previous versions.
+- **Resampling Scaling**: Fixed a critical bug where resampling audio would leave cue markers at original sample positions. All formats now scale cue marker positions proportionally during sample rate conversion.
+- **REX2 Slice Visibility**: Reverted REX2 slicing to respect manually set/locked markers in 'Strict' mode, filtering out internal candidate transients that were flooding the output.
+- **Mono Metadata Persistence**: Corrected a bug where downmixing to mono only updated the channel count metadata for the first audio slice.
+- **Linux REX2 Support**: Enabled and verified REX2 integration tests on Linux, ensuring full parity with macOS and Windows.
+
 ## [1.7.0] - 2026-09-15
 
 ### Added

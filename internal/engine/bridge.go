@@ -25,15 +25,9 @@ func RenderLoopPreview(fileData []byte, targetSampleRate, tempo int) (*SliceExtr
 		return nil, err
 	}
 
-	// Tempo stored as BPM*1000 in REX2 format, divide to get actual BPM
-	sampleRate := f.Info.SampleRate
-	if targetSampleRate > 0 {
-		sampleRate = targetSampleRate
-	}
-
 	meta := RexMetadata{
 		Channels:      f.Info.Channels,
-		SampleRate:    sampleRate,
+		SampleRate:    f.Info.SampleRate,
 		Tempo:         float64(f.Info.Tempo) / 1000.0,
 		OriginalTempo: float64(f.Info.OriginalTempo) / 1000.0,
 		TimeSignNom:   f.Info.TimeSigNum,
@@ -59,11 +53,10 @@ func RenderLoopPreview(fileData []byte, targetSampleRate, tempo int) (*SliceExtr
 
 	cuePoints := make([]WavCueMarker, len(f.Slices))
 	for i, s := range f.Slices {
-		actualTempo := f.Info.Tempo
-		if tempo > 0 {
-			actualTempo = tempo * 1000
+		framePos := s.SampleStart - startFrame
+		if framePos < 0 {
+			framePos = 0
 		}
-		framePos := int(float64(f.Info.SampleRate) * 1000.0 * float64(s.PPQPos) / (float64(actualTempo) * 256.0))
 		if framePos > totalFrames {
 			framePos = totalFrames
 		}
@@ -88,14 +81,9 @@ func RenderSlicesPreview(fileData []byte, targetSampleRate, tempo int, strict bo
 		return nil, err
 	}
 
-	sampleRate := f.Info.SampleRate
-	if targetSampleRate > 0 {
-		sampleRate = targetSampleRate
-	}
-
 	meta := RexMetadata{
 		Channels:      f.Info.Channels,
-		SampleRate:    sampleRate,
+		SampleRate:    f.Info.SampleRate,
 		Tempo:         float64(f.Info.Tempo) / 1000.0,
 		OriginalTempo: float64(f.Info.OriginalTempo) / 1000.0,
 		TimeSignNom:   f.Info.TimeSigNum,

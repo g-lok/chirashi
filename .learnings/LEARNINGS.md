@@ -212,3 +212,33 @@ WAV files using the extensible header (`0xFFFE`) require parsing the 16-byte `Su
 - Source: feature_request
 - Related Files: internal/engine/reader_wav.go, internal/engine/reader_xrni.go
 - Tags: wav, audio-formats, extensible-header, float-audio
+
+## [LRN-20260927-001] correction
+
+**Logged**: 2026-09-27T22:30:00Z
+**Priority**: high
+**Status**: promoted
+**Area**: backend | tests
+
+### Summary
+Fixed major cue marker drift and over-slicing in REX2 conversions.
+
+### Details
+Found multiple bugs causing broken slices in Dirtywave M8 (WAV + cues) output:
+1. REX2 `StrictSlices` mode was incorrectly returning ALL transient markers (200+) instead of just manually set/locked slices.
+2. `RenderLoopPreview` derived frame positions from PPQ/tempo, causing rounding drift.
+3. Resampling (`ForceSampleRate`) updated PCM but didn't scale cue marker positions.
+4. Mono downmix only updated channel metadata for the first slice.
+
+### Suggested Action
+- Use `SampleStart` (exact frames) for all cue positions.
+- Always scale `CuePoints[i].Position` during resampling.
+- Ensure integration tests check for EXACT slice counts to catch transient detection regressions.
+
+### Metadata
+- Source: user_feedback
+- Related Files: internal/engine/rex2/reader.go, internal/engine/bridge.go, internal/engine/resample.go, internal/engine/runner.go, tests/integration_test.go
+- Tags: rex2, cue-markers, resampling, regression
+- Promoted: AGENTS.md
+
+---

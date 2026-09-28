@@ -354,16 +354,17 @@ func (f *REX2File) isVisibleSliceBoundary(s rawSliceEntry) bool {
 	if s.state == 1 { // muted
 		return false
 	}
-	if f.StrictSlices {
-		// Strict parity mode: Use every marker in the table as a hard slice
-		return true
-	}
 	if s.sampleLength > 1 { // region
 		return true
 	}
 	if s.state == 2 || s.selectedFlag { // locked or selected
 		return true
 	}
+	if f.StrictSlices {
+		// Strict mode: Only use manually set markers (locked/selected/regions)
+		return false
+	}
+	// Default mode: Include markers visible via analysis sensitivity slider
 	return s.points > rex2FilterPoints(f.analysisSensitivity)
 }
 

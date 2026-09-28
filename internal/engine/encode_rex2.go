@@ -59,8 +59,15 @@ func EncodeREX2(extraction *SliceExtraction, tempoOverride int) ([]byte, error) 
 			if length < 1 {
 				length = 1
 			}
+
+			// Compute PPQ position for ReCycle parity
+			ppqPos := 0
+			if extraction.Metadata.Tempo > 0 {
+				ppqPos = int(float64(start) * (extraction.Metadata.Tempo * 256.0) / float64(sampleRate))
+			}
+
 			slices[i] = rex2.SliceInfo{
-				PPQPos:       0,
+				PPQPos:       ppqPos,
 				SampleStart:  start,
 				SampleLength: length,
 			}

@@ -26,16 +26,25 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - `rex2/encoder.go`: Produces valid CAT REX2 files with DWOP compression
 - `rex2/legacy.go`: PTI and OT legacy format readers (same SliceInfo output)
 
-**REX2 encoder status (v1.3.0):**
+**REX2 encoder status (v1.7.1):**
+- **Slices & Cues**: Slicing logic refined to respect saved/locked points by default. Cue markers use exact frame positions instead of tempo-derived musical ticks to prevent drift.
+- **Resampling**: All formats now scale cue marker positions proportionally during sample rate conversion.
 - Bit-perfect DWOP encoding achieved via predictor symmetry (inversion of applyPredictor logic).
 - Stereo coupling (L + Delta) bitstream alignment corrected.
 - Word alignment (4-byte padding) enforced for SDAT chunks.
 - SLCE chunks sorted by sample start position.
-- **REX2 OUTPUT ENABLED** and verified via ReCycle bitstream parity.
+- **REX2 OUTPUT ENABLED** and verified via roundtrip bitstream parity.
 
-**v1.4.0: Metadata & Categorization Update**
-- **Categorization**: Added `--category` flag to set hardware folder tags (OP-1 `original_folder`).
-- **Clean Metadata**: Removed all legacy "REXConverter" and "SOLE DISPLAY" artifacts. Encoders now use sanitized source filenames for internal instrument names.
+**v1.7.1: Cue Accuracy & REX2 Refinement**
+- **Exact Positioning**: Switched REX2 loop rendering to use sample-frame offsets for cue markers, eliminating timing drift seen in previous versions.
+- **Resampling Scaling**: Fixed a critical bug where resampling audio would leave cue markers at original sample positions.
+- **Slicing Default**: Reverted REX2 slicing to respect manually set/locked markers in 'Strict' mode, filtering out internal candidate transients.
+
+**v1.7.0: Reason NN-XT Support**
+- Reason NN-XT (.sxt) encoder and reader.
+- Akai Legacy MPC Program (.pgm) encoder and reader.
+- Roland SP-404 MKII encoder and SD card import directory writer.
+- Bitwig Studio .multisample reader and encoder.
 
 **v1.3.0: Robust Batch Release**
 - **Fault Tolerance**: Runner logs per-file errors to Stderr and continues batch jobs.

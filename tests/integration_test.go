@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,6 +22,7 @@ func findBinary() string {
 	candidates := []string{
 		"../build/chirashi",
 		"build/chirashi",
+		"../chirashi",
 		"./chirashi",
 	}
 	for _, p := range candidates {
@@ -39,17 +39,10 @@ func findBinary() string {
 
 func requireREX(t *testing.T) {
 	t.Helper()
-	if runtime.GOOS == "linux" {
-		t.Skip("REX SDK not available on Linux")
-	}
+	// Pure Go engine works on all platforms
 }
 
 func testDataPath(name string) string {
-	// On Linux, REX test files exist but can't be processed
-	ext := strings.ToLower(filepath.Ext(name))
-	if (ext == ".rex" || ext == ".rx2" || ext == ".rcy") && runtime.GOOS == "linux" {
-		return ""
-	}
 	return filepath.Join("testdata", name)
 }
 
@@ -798,8 +791,8 @@ func TestIntegration_CueMarkersCorrect(t *testing.T) {
 	}
 
 	numCue := int(binary.LittleEndian.Uint32(data[cueIdx+8 : cueIdx+12]))
-	if numCue < 1 {
-		t.Fatal("cue chunk must contain at least 1 cue point")
+	if numCue != 10 {
+		t.Fatalf("expected 10 cue points (saved slices), got %d. check for transient detection regression.", numCue)
 	}
 	t.Logf("Cue points: %d", numCue)
 
@@ -1338,5 +1331,131 @@ func createTestWAV(t *testing.T, path string, sampleRate, numChannels, numSample
 	binary.Write(f, binary.LittleEndian, dataSize)
 	for i := 0; i < numSamples*numChannels; i++ {
 		binary.Write(f, binary.LittleEndian, int16(0))
+	}
+}
+
+func TestIntegration_REX2ResamplingCueAccuracy(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+	rx2Path := testDataPath("120Stereo.rx2")
+	if _, err := os.Stat(rx2Path); os.IsNotExist(err) {
+		t.Skip("test data not found")
+	}
+
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "resampled_cue.wav")
+	
+	// Convert to 48kHz (ratio 48000/44100 = 1.088435)
+	// Original positions: 0, 10890, 17544, 21836, 28711, 32920, 44008, 55183, 65811, 76870
+	// Expected positions: 0, 11853, 19096, 23767, 31250, 35831, 47900, 60063, 71631, 83668
+	expected := []uint32{0, 11853, 19096, 23767, 31250, 35831, 47900, 60063, 71631, 83668}
+
+	cmd := exec.Command(binaryPath, rx2Path, "-s", "48000", "-b", "16", "-o", outPath)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed: %v\noutput: %s", err, string(out))
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cueIdx := bytes.Index(data, []byte("cue "))
+	if cueIdx < 0 {
+		t.Fatal("missing cue chunk")
+	}
+
+	numCue := int(binary.LittleEndian.Uint32(data[cueIdx+8 : cueIdx+12]))
+	if numCue != len(expected) {
+		t.Fatalf("expected %d cue points, got %d", len(expected), numCue)
+	}
+
+	for i := 0; i < numCue; i++ {
+		off := cueIdx + 12 + i*24
+		sampleOffset := binary.LittleEndian.Uint32(data[off+20 : off+24])
+		
+		if sampleOffset != expected[i] {
+			t.Errorf("cue point %d: expected position %d, got %d", i, expected[i], sampleOffset)
+		}
+	}
+}
+
+func TestIntegration_Roundtrip_REX2_WAV_REX2(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+	rx2Path := testDataPath("120Stereo.rx2")
+	if _, err := os.Stat(rx2Path); os.IsNotExist(err) {
+		t.Skip("test data not found")
+	}
+
+	dir := t.TempDir()
+	wavPath := filepath.Join(dir, "step1.wav")
+	rx2RoundtripPath := filepath.Join(dir, "step2.rx2")
+
+	// Step 1: REX2 -> WAV
+	cmd1 := exec.Command(binaryPath, rx2Path, "-o", wavPath)
+	if out, err := cmd1.CombinedOutput(); err != nil {
+		t.Fatalf("Step 1 failed: %v\noutput: %s", err, string(out))
+	}
+
+	// Step 2: WAV -> REX2
+	cmd2 := exec.Command(binaryPath, wavPath, "-f", "rx2", "-o", rx2RoundtripPath)
+	if out, err := cmd2.CombinedOutput(); err != nil {
+		t.Fatalf("Step 2 failed: %v\noutput: %s", err, string(out))
+	}
+
+	// Step 3: REX2 (roundtrip) -> console output (check slice count)
+	cmd3 := exec.Command(binaryPath, rx2RoundtripPath)
+	out, err := cmd3.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Step 3 failed: %v\noutput: %s", err, string(out))
+	}
+
+	// 120Stereo.rx2 has 10 slices in strict mode
+	if !strings.Contains(string(out), "Slices: 10") {
+		t.Errorf("Roundtrip slice count mismatch. Output: %s", string(out))
+	}
+}
+
+func TestIntegration_Roundtrip_WAV_AIFF_WAV(t *testing.T) {
+	if binaryPath == "" {
+		t.Skip("binary not found")
+	}
+	rx2Path := testDataPath("120Stereo.rx2")
+	if _, err := os.Stat(rx2Path); os.IsNotExist(err) {
+		t.Skip("test data not found")
+	}
+
+	dir := t.TempDir()
+	wavPath := filepath.Join(dir, "start.wav")
+	aifPath := filepath.Join(dir, "middle.aif")
+	endWavPath := filepath.Join(dir, "end.wav")
+
+	// 1. REX2 -> WAV (to get a valid sliced WAV)
+	cmd0 := exec.Command(binaryPath, rx2Path, "-o", wavPath)
+	cmd0.Run()
+
+	// 2. WAV -> AIFF
+	cmd1 := exec.Command(binaryPath, wavPath, "-f", "aif", "-o", aifPath)
+	if out, err := cmd1.CombinedOutput(); err != nil {
+		t.Fatalf("WAV->AIFF failed: %v\noutput: %s", err, string(out))
+	}
+
+	// 3. AIFF -> WAV
+	cmd2 := exec.Command(binaryPath, aifPath, "-f", "wav", "-o", endWavPath)
+	if out, err := cmd2.CombinedOutput(); err != nil {
+		t.Fatalf("AIFF->WAV failed: %v\noutput: %s", err, string(out))
+	}
+
+	// 4. Verify slice count
+	cmd3 := exec.Command(binaryPath, endWavPath)
+	out, err := cmd3.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(out), "Slices: 10") {
+		t.Errorf("AIFF roundtrip slice count mismatch: %s", string(out))
 	}
 }

@@ -166,8 +166,8 @@ func processFileBuffer(fileData []byte, sourcePath string, cfg PipelineConfig) e
 			}
 			slices[i].Interleaved = mono
 			slices[i].TotalFrames = len(mono)
+			slices[i].Metadata.Channels = 1
 		}
-		slices[0].Metadata.Channels = 1
 	}
 
 	var chunks []SliceExtraction
