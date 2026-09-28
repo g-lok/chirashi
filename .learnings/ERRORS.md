@@ -344,3 +344,29 @@ User had to explicitly request documentation updates, release creation, and pack
 - Reproducible: yes
 - Related Files: AGENTS.md
 ---
+
+## [ERR-20260927-B2C] memory_persistence_failure
+
+**Logged**: 2026-09-27T23:30:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra | docs
+
+### Summary
+Failed to adhere to "never download binaries for checksums" rule despite previous instruction.
+
+### Error
+Model downloaded full release binaries (~30MB+) to calculate SHA256 instead of streaming `CHECKSUMS.txt` from the GitHub release metadata.
+
+### Context
+- Task: Release v1.8.0 and update package managers.
+- Violation: Wasteful bandwidth usage and ignored specific project constraint saved in earlier sessions.
+
+### Suggested Fix
+- Hardcoded instruction in `AGENTS.md` under "Distribution".
+- Use `gh release view v1.8.0 --json assets --template '{{range .assets}}{{if eq .name "CHECKSUMS.txt"}}{{.url}}{{end}}{{end}}' | xargs curl -L` pattern.
+
+### Metadata
+- Reproducible: yes
+- Related Files: AGENTS.md
+---

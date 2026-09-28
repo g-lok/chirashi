@@ -26,14 +26,10 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - `rex2/encoder.go`: Produces valid CAT REX2 files with DWOP compression
 - `rex2/legacy.go`: PTI and OT legacy format readers (same SliceInfo output)
 
-**REX2 encoder status (v1.7.1):**
-- **Slices & Cues**: Slicing logic refined to respect saved/locked points by default. Cue markers use exact frame positions instead of tempo-derived musical ticks to prevent drift.
-- **Resampling**: All formats now scale cue marker positions proportionally during sample rate conversion.
-- Bit-perfect DWOP encoding achieved via predictor symmetry (inversion of applyPredictor logic).
-- Stereo coupling (L + Delta) bitstream alignment corrected.
-- Word alignment (4-byte padding) enforced for SDAT chunks.
-- SLCE chunks sorted by sample start position.
-- **REX2 OUTPUT ENABLED** and verified via roundtrip bitstream parity.
+**v1.8.0: Info & Dry Run Modes**
+- **Read-Only Inspection**: Added `--info` to display format-specific metadata, audio properties, and hard-coded slice regions with `HH:MM:SS:ms` timestamps.
+- **Pipeline Simulation**: Added `--dry-run` to visualize the complete transformation plan (resampling, downmixing, split targets) without writing to disk.
+- **JSON Support**: Added `--json` for machine-parseable diagnostic output.
 
 **v1.7.1: Cue Accuracy & REX2 Refinement**
 - **Exact Positioning**: Switched REX2 loop rendering to use sample-frame offsets for cue markers, eliminating timing drift seen in previous versions.
@@ -111,6 +107,8 @@ REX2 pure Go implementation: `internal/engine/rex2/` — IFF parser, DWOP decode
 - **Simpler ADV**: SlicingRegions value is always 2 (start+end per part)
 - **EncodeWavContainer**: only DOWNGRADES bit depth (when targetBitDepth < extraction.BitDepth). Never upgrades. To force higher bit depth, set extraction metadata + pass matching targetBitDepth (or 0 to skip check)
 - **REX2 output (.rx2)**: DISABLED. The encoder produces valid IFF but ReCycle rejects files due to DWOP compression differences. Use WAV output.
+
+- **Release Checksums**: NEVER download binaries to get checksums. Stream `CHECKSUMS.txt` directly from GitHub release via `gh release view vX.Y.Z --json assets` or `curl` to avoid wasting bandwidth/storage.
 
 ## Build system
 

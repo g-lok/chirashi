@@ -242,3 +242,28 @@ Found multiple bugs causing broken slices in Dirtywave M8 (WAV + cues) output:
 - Promoted: AGENTS.md
 
 ---
+
+## [LRN-20260927-002] best_practice
+
+**Logged**: 2026-09-27T22:55:00Z
+**Priority**: medium
+**Status**: promoted
+**Area**: backend | cli
+
+### Summary
+Implemented structured diagnostic and dry-run modes.
+
+### Details
+Added `--info` and `--dry-run` to enable read-only inspection of all supported formats.
+Implemented `Inspect()` method on `InputReader` interface to allow format-specific metadata extraction without reader-specific type asserting in the CLI layer.
+Used YAML multi-doc (`---`) for batch output to keep it human-readable and machine-parseable by default.
+
+### Suggested Action
+Use `--dry-run` in integration tests to verify transformation plans without disk IO.
+
+### Metadata
+- Related Files: internal/engine/diagnostic.go, internal/engine/reader.go
+- Tags: cli, diagnostic, dry-run
+- Promoted: AGENTS.md
+
+---
