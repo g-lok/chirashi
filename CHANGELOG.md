@@ -5,6 +5,20 @@ All notable changes to chirashi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-09-27
+
+### Added
+
+- **Diagnostic Mode (`--info`)**:
+  - Performs a read-only inspection of input files, displaying format-specific metadata, audio properties, and tempo.
+  - Lists hard-coded slice regions with exact start/end frames and formatted `HH:MM:SS:ms` timestamps.
+  - Supports all 17+ input formats including REX2, WAV, AIFF, Ableton, Renoise, and Bitwig.
+- **Dry Run Mode (`--dry-run`)**:
+  - Simulates the entire conversion pipeline without writing files or creating directories.
+  - Displays input diagnostic info along with the planned output transformation (channels, sample rate, bit depth, destination paths, and split ranges).
+- **JSON Output (`--json`)**:
+  - Optional flag to output diagnostic and dry-run reports in strict, machine-parseable JSON format.
+
 ## [1.7.1] - 2026-09-27
 
 ### Fixed
